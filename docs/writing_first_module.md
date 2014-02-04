@@ -256,3 +256,8 @@ but you can also overwrite view files from other modules. You can find more info
 section of the QuickStart. //@todo Appendix link
 
 //@todo performance hint template_map
+
+Reload your site now. Finally we are at a point where we see something different than an error display. Congratulations,
+not only have you created a simple "Hello World" kinda module, you also learned about many error messages and their
+sources. If we didn't exhaust you too much, continue with our QuickStart and let's create a module that actually does
+something.
