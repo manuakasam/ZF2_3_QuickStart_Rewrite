@@ -182,12 +182,12 @@ implementation of the `Zend\Loader\StandardAutoloader` that tells the applicatio
 folder that's named like our namespace. So:
 
 All classes that have the namespace `Album` are found inside `/module/Album/src/Album`. This holds true as long as we
-hold on to PSR-0.
+hold on to [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md).
 
 If you refresh the browser now you'll see that the error remains the same. And this is logical because remember what
 we did by now. We do have told the application where to find the controller now, but we have yet to actually write the
 controller itself. So let's continue with this. Let's create a controller class `Album\Controller\AlbumController`. To
-reflect PSR-0 we do separate namespaces into folders so you'll find this file under
+reflect [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md) we do separate namespaces into folders so you'll find this file under
 `/module/Album/src/Album/Controller/AlbumController.php`:
 
 ```php
