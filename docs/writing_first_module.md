@@ -102,7 +102,7 @@ return array(
                 'options' => array(
                     'route'    => '/album',
                     'defaults' => array(
-                        'controller' => 'Album\Controller\Album',
+                        'controller' => 'Album\Controller\List',
                         'action'     => 'index',
                     ),
                 ),
@@ -113,7 +113,7 @@ return array(
 ```
 
 With this we have created a new route called `album-default` that listens to the url `domain.loc/album`. Whenever
-someone accesses this route a controller called `Album\Controller\Album` will be accessed and more precisely its
+someone accesses this route a controller called `Album\Controller\List` will be accessed and more precisely its
 `indexAction()`. The problem is that this controller does not yet exist and if you reload the page you will be greeted
 with this lovely error message:
 
@@ -123,11 +123,11 @@ Page not found.
 The requested controller could not be mapped to an existing controller class.
 
 Controller:
-Album\Controller\Album(resolves to invalid controller class or alias: Album\Controller\Album)
+Album\Controller\List(resolves to invalid controller class or alias: Album\Controller\List)
 No Exception available
 ```
 
-We now need to tell our module where to fine this controller named `Album\Controller\Album`. To achieve this we have
+We now need to tell our module where to fine this controller named `Album\Controller\List`. To achieve this we have
 to add this key to the `controllers` configuration key.
 
 ```php
@@ -135,7 +135,7 @@ to add this key to the `controllers` configuration key.
 return array(
     'controllers' => array(
         'invokables' => array(
-            'Album\Controller\Album' => 'Album\Controller\AlbumController'
+            'Album\Controller\List' => 'Album\Controller\ListController'
         )
     ),
     'router' => array(
@@ -144,12 +144,12 @@ return array(
 );
 ```
 
-The above configuration lets the application know that the controller key `Album\Controller\Album` is meant as an alias
-for the class `AlbumController` under the namespace `Album\Controller`. Sadly though this isn't enough yet. Reloading
+The above configuration lets the application know that the controller key `Album\Controller\List` is meant as an alias
+for the class `ListController` under the namespace `Album\Controller`. Sadly though this isn't enough yet. Reloading
 the page results into yet another error:
 
 ```text
-( ! ) Fatal error: Class 'Album\Controller\AlbumController' not found in {libPath}\Zend\ServiceManager\AbstractPluginManager.php on line {lineNumber}
+( ! ) Fatal error: Class 'Album\Controller\ListController' not found in {libPath}\Zend\ServiceManager\AbstractPluginManager.php on line {lineNumber}
 ```
 
 This error tells us that the application know what class we want to access but sadly it simply cannot find the class.
@@ -198,15 +198,15 @@ hold on to [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accept
 
 If you refresh the browser now you'll see that the error remains the same. And this is logical because remember what
 we did by now. We do have told the application where to find the controller now, but we have yet to actually write the
-controller itself. So let's continue with this. Let's create a controller class `Album\Controller\AlbumController`. To
+controller itself. So let's continue with this. Let's create a controller class `Album\Controller\ListController`. To
 reflect [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md) we do separate namespaces into folders so you'll find this file under
-`/module/Album/src/Album/Controller/AlbumController.php`:
+`/module/Album/src/Album/Controller/ListController.php`:
 
 ```php
 <?php
 namespace Album\Controller;
 
-class AlbumController {}
+class ListController {}
 ```
 
 Reloading the page now will finally result into a new screen. The new error message looks like this:
@@ -217,7 +217,7 @@ Page not found.
 The requested controller was not dispatchable.
 
 Controller:
-Album\Controller\Album(resolves to invalid controller class or alias: Album\Controller\Album)
+Album\Controller\List(resolves to invalid controller class or alias: Album\Controller\List)
 
 Additional information:
 Zend\Mvc\Exception\InvalidControllerException
@@ -225,7 +225,7 @@ Zend\Mvc\Exception\InvalidControllerException
 File:
 {libraryPath}\Zend\Mvc\Controller\ControllerManager.php:{lineNumber}
 Message:
-Controller of type Album\Controller\AlbumController is invalid; must implement Zend\Stdlib\DispatchableInterface
+Controller of type Album\Controller\ListController is invalid; must implement Zend\Stdlib\DispatchableInterface
 ```
 
 Explaining this goes beyond the scope of a QuickStart Tutorial but it is important that you see it. It basically tells
@@ -240,7 +240,7 @@ namespace Album\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 
-class AlbumController extends AbstractActionController {}
+class ListController extends AbstractActionController {}
 ```
 
 It's now time for another refresh of the site. Big surprise, there's another error message for you.
@@ -255,15 +255,15 @@ Zend\View\Exception\RuntimeException
 File:
 {libraryPath}\library\Zend\View\Renderer\PhpRenderer.php:{lineNumber}
 Message:
-Zend\View\Renderer\PhpRenderer::render: Unable to render template "album/album/index"; resolver could not resolve to a file
+Zend\View\Renderer\PhpRenderer::render: Unable to render template "album/list/index"; resolver could not resolve to a file
 ```
 
 Now the application tells you that a view template-file can not be rendered. Given our current progress this is more
 than natural, because we have yet to actually write this view-file ourselves. The standard path would be
-`/module/Album/view/album/album/index.phtml`. Create this file and add some dummy content to it:
+`/module/Album/view/album/list/index.phtml`. Create this file and add some dummy content to it:
 
 ```html
-<h1>Album::indexAction()</h1>
+<h1>Album\ListController::indexAction()</h1>
 ```
 
 Before we continue let us quickly take a look at where we placed this file. First off, view files are not to be found
