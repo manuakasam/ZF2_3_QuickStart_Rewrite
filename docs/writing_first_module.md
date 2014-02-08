@@ -117,7 +117,15 @@ someone accesses this route a controller called `Album\Controller\Album` will be
 `indexAction()`. The problem is that this controller does not yet exist and if you reload the page you will be greeted
 with this lovely error message:
 
-[[ //@todo Implement Error Message for current status of tutorial ]]
+```text
+A 404 error occurred
+Page not found.
+The requested controller could not be mapped to an existing controller class.
+
+Controller:
+Album\Controller\Album(resolves to invalid controller class or alias: Album\Controller\Album)
+No Exception available
+```
 
 We now need to tell our module where to fine this controller named `Album\Controller\Album`. To achieve this we have
 to add this key to the `controllers` configuration key.
@@ -140,7 +148,9 @@ The above configuration lets the application know that the controller key `Album
 for the class `AlbumController` under the namespace `Album\Controller`. Sadly though this isn't enough yet. Reloading
 the page results into yet another error:
 
-[[ //@todo Implement Error Message for current status of tutorial ]]
+```text
+( ! ) Fatal error: Class 'Album\Controller\AlbumController' not found in {libPath}\Zend\ServiceManager\AbstractPluginManager.php on line {lineNumber}
+```
 
 This error tells us that the application know what class we want to access but sadly it simply cannot find the class.
 That happens because our module never told the application where to find the classes that our module provides. To
@@ -161,11 +171,13 @@ class Module implements
 {
     public function getAutoloaderConfig()
     {
-        'Zend\Loader\StandardAutoloader' => array(
-            'namespaces' => array(
-                __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
-            ),
-        ),
+        return array(
+            'Zend\Loader\StandardAutoloader' => array(
+                'namespaces' => array(
+                    __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
+                )
+            )
+        );
     }
 
     public function getConfig()
@@ -199,7 +211,22 @@ class AlbumController {}
 
 Reloading the page now will finally result into a new screen. The new error message looks like this:
 
-[[ //@todo Implement Error Message for current status of tutorial ]]
+```text
+A 404 error occurred
+Page not found.
+The requested controller was not dispatchable.
+
+Controller:
+Album\Controller\Album(resolves to invalid controller class or alias: Album\Controller\Album)
+
+Additional information:
+Zend\Mvc\Exception\InvalidControllerException
+
+File:
+{libraryPath}\Zend\Mvc\Controller\ControllerManager.php:{lineNumber}
+Message:
+Controller of type Album\Controller\AlbumController is invalid; must implement Zend\Stdlib\DispatchableInterface
+```
 
 Explaining this goes beyond the scope of a QuickStart Tutorial but it is important that you see it. It basically tells
 you that the application found something but has no idea how to deal with it. In MVC terms spoken: our application is
@@ -216,10 +243,24 @@ use Zend\Mvc\Controller\AbstractActionController;
 class AlbumController extends AbstractActionController {}
 ```
 
-It's now time for another refresh of the site. Big surprise, there's another error message for you. Now the application
-tells you that a view file can not be found. Naturally, we just wrote a controller so where would it come from. Let's
-create the view file. The standard path would be `/module/Album/view/album/album/index.phtml`. Create this file and
-add some dummy content to it:
+It's now time for another refresh of the site. Big surprise, there's another error message for you.
+
+```text
+An error occurred
+An error occurred during execution; please try again later.
+
+Additional information:
+Zend\View\Exception\RuntimeException
+
+File:
+{libraryPath}\library\Zend\View\Renderer\PhpRenderer.php:{lineNumber}
+Message:
+Zend\View\Renderer\PhpRenderer::render: Unable to render template "album/album/index"; resolver could not resolve to a file
+```
+
+Now the application tells you that a view template-file can not be rendered. Given our current progress this is more
+than natural, because we have yet to actually write this view-file ourselves. The standard path would be
+`/module/Album/view/album/album/index.phtml`. Create this file and add some dummy content to it:
 
 ```html
 <h1>Album::indexAction()</h1>
@@ -227,11 +268,13 @@ add some dummy content to it:
 
 Before we continue let us quickly take a look at where we placed this file. First off, view files are not to be found
 under the `/src` directory because they are not source files. They are views so `/view` is much more logical. The
-succeeding path however deserves some explanation but it's very simple `/view/{namespace}/{controller}/{action}.phtml`.
+succeeding path however deserves some explanation but it's very simple. First we have the lowercased namespace. Following
+by the lowercased controller name without the appendix 'controller' and lastly comes the name of the action that we are
+accessing, again without the appendix 'action'. All in all it looks like this: `/view/{namespace}/{controller}/{action}.phtml`.
 This has become a community standard but can potentionally be changed by you at any time.
 
-Which actually brings as to the final topic of this part of the QuickStart. We need to let the application know where
-to look for view files. We do this within our modules configuration file `module.config.php`.
+However creating this file alone is not enough and this brings as to the final topic of this part of the QuickStart. We
+need to let the application know where to look for view files. We do this within our modules configuration file `module.config.php`.
 
 ```php
 <?php
