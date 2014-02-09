@@ -27,9 +27,8 @@ Getting Started
 
 **Introducing the Service Layer**
 
-- Blabla, getting data from DB is best done using a ServiceLayer
-- Modifying Album\Controller\List with PseudoCode (introducing non-existant AlbumService)
-- Writing Album\Service\AlbumService
+- Blabla, what is a ServiceLayer
+- Writing Album\Service\AlbumService with pseudo-data inline
 - Dependency Injection, accessing AlbumService in ListController
 - Hinting concrete differences between invokables and factories
 
