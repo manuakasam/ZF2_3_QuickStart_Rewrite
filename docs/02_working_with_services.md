@@ -636,7 +636,7 @@ Let's modify our view to display a table of all Albums we that our `AlbumService
         </tr>
     </thead>
     <tbody>
-        <?php foreach($this->albums as $album) : ?>
+        <?php foreach ($this->albums as $album) : ?>
         <tr>
             <td><?php echo $album->getId();?></td>
             <td><?php echo $album->getArtist();?></td>
