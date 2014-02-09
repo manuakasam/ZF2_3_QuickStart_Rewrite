@@ -5,7 +5,7 @@ Now that we know about the basics of the Zend Framework 2 Skeleton Application, 
 module. We will create a module named "Album". This module will display a list of database entries that represent a
 single CD-Album. Each album will receive a couple of properties like `id`, `artist` and `title`. We will create forms
 to enter new albums into our database and to edit existing albums. Furthermore we will do so by using best-practices
-throughout the whole QuickStart.
+throughout the whole QuickStart..
 
 
 Writing a new Module
