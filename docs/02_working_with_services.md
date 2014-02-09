@@ -364,7 +364,9 @@ Bringing the Service into the Controller
 Now that we have our `AlbumService` written, we want to get access to this Service in our Controllers. For this task
 we will step foot into a new topic called "Dependency Injection" short "DI".
 
-// @todo Need someone to write a good 2-3 Sentences summary of what DI is in very easy to understand words
+Very quickly: Dependency Injection is where components are given their dependencies through their constructors, methods,
+or directly into fields. Those components do not get their dependencies themselves, or instantiate them directly.
+This is very much related to the encompassing design principle [`Inversion of Control`](http://picocontainer.codehaus.org/inversion-of-control.html).
 
 In our case we want to have our Album-Modules `ListController` somehow interact with our `AlbumService`. This means
 that the class `AlbumService` is a dependency of the class `ListController`. Without the `AlbumService` our
