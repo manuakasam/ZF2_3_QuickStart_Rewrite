@@ -8,7 +8,7 @@ introduce you into the concept of Services and with this the introduction to [`Z
 What is a Service?
 ==================
 
-//@todo someone who can define Service in a few sentences in easy to understand words.
+//@todo someone who can define Service in a few sentences in easy to understand words
 
 For what we're trying to accomplish with our `Album`-Module this means that we want to have a Service that will give
 us the data that we want. The Service will get it's data from some source and when writing the Service we don't really
