@@ -636,11 +636,11 @@ Let's modify our view to display a table of all Albums we that our `AlbumService
         </tr>
     </thead>
     <tbody>
-        <?php foreach($this->albums as $a) : ?>
+        <?php foreach($this->albums as $album) : ?>
         <tr>
-            <td><?php echo $a->getId();?></td>
-            <td><?php echo $a->getArtist();?></td>
-            <td><?php echo $a->getTitle();?></td>
+            <td><?php echo $album->getId();?></td>
+            <td><?php echo $album->getArtist();?></td>
+            <td><?php echo $album->getTitle();?></td>
         </tr>
         <?php endforeach; ?>
     </tbody>
