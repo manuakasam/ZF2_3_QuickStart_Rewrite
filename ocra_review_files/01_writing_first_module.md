@@ -181,14 +181,15 @@ for the class `ListController` under the namespace `Album\Controller`. Sadly tho
 the page results into yet another error:
 
 ```text
-( ! ) Fatal error: Class 'Album\Controller\ListController' not found in {libPath}\Zend\ServiceManager\AbstractPluginManager.php on line {lineNumber}
+( ! ) Fatal error: Class 'Album\Controller\ListController' not found in {libPath}/Zend/ServiceManager/AbstractPluginManager.php on line {lineNumber}
 ```
 
 This error tells us that the application know what class we want to access but sadly it simply cannot find the class.
-That happens because our module never told the application where to find the classes that our module provides. To
-have this information passed from our module to the application we need to add and implement the
-[`AutoloaderProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/AutoloaderProviderInterface.php)
-to our `Module` class.
+That happens because our module never told the application where to find the classes that our module provides. Telling
+the application where to find classes is done by providing [autoloader](http://php.net/manual/de/language.oop5.autoload.php)
+configuration. This is done by addíng and implementing the [`AutoloaderProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/AutoloaderProviderInterface.php)
+to our `Module` class. Note that once again adding the interface is optional, all you need is the `getAutoloaderConfig()`
+function defined by the interface.
 
 ```php
 <?php
@@ -257,7 +258,7 @@ Additional information:
 Zend\Mvc\Exception\InvalidControllerException
 
 File:
-{libraryPath}\Zend\Mvc\Controller\ControllerManager.php:{lineNumber}
+{libraryPath}/Zend/Mvc/Controller/ControllerManager.php:{lineNumber}
 Message:
 Controller of type Album\Controller\ListController is invalid; must implement Zend\Stdlib\DispatchableInterface
 ```
@@ -292,7 +293,7 @@ Additional information:
 Zend\View\Exception\RuntimeException
 
 File:
-{libraryPath}\library\Zend\View\Renderer\PhpRenderer.php:{lineNumber}
+{libraryPath}/library/Zend/View/Renderer/PhpRenderer.php:{lineNumber}
 Message:
 Zend\View\Renderer\PhpRenderer::render: Unable to render template "album/list/index"; resolver could not resolve to a file
 ```
@@ -336,8 +337,6 @@ The above configuration tells the application that the folder `/module/Album/vie
 above described default scheme. It is important to note that with this you can not only ship view files for your module
 but you can also overwrite view files from other modules. You can find more information about this inside our Appendix
 section of the QuickStart. //@todo Appendix link
-
-//@todo performance hint template_map
 
 Reload your site now. Finally we are at a point where we see something different than an error display. Congratulations,
 not only have you created a simple "Hello World" kinda module, you also learned about many error messages and their
