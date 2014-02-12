@@ -3,7 +3,7 @@ Introducing our first "Album" Module
 
 Now that we know about the basics of the Zend Framework 2 Skeleton Application, let's continue and create our very own
 module. We will create a module named "Album". This module will display a list of database entries that represent a
-single CD-Album. Each album will receive a couple of properties like `id`, `artist` and `title`. We will create forms
+single music album. Each album will receive a couple of properties like `id`, `artist` and `title`. We will create forms
 to enter new albums into our database and to edit existing albums. Furthermore we will do so by using best-practices
 throughout the whole QuickStart.
 
@@ -16,8 +16,8 @@ like this:
 
 [[ DISPLAY IMAGE - DIRECTORY STRUCTURE /module/Album ]]
 
-To be recognized as a module by ZF2s [ModuleManager](https://github.com/zendframework/zf2/blob/master/library/Zend/ModuleManager/ModuleManager.php)
-all we need to do is create a PHP-Class named `Module` under our modules namespace, which is `Album`. Create the file
+To be recognized as a module by the [ModuleManager](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php)
+all we need to do is create a PHP-Class named `Module` under our module's namespace, which is `Album`. Create the file
 `/module/Album/Module.php` [[ LINK IMAGE - CURRENT DIRECTORY STRUCTURE /module/Album/Module.php ]]
 
 ```php
@@ -27,29 +27,35 @@ namespace Album;
 class Module {}
 ```
 
-We now have a module that can be detected by ZF2s [`ModuleManager`](https://github.com/zendframework/zf2/blob/master/library/Zend/ModuleManager/ModuleManager.php).
-Let's try to add this module to our application. Even though it doesn't do anything yet, it should be able to be loaded
-by the [`ModuleManager`](https://github.com/zendframework/zf2/blob/master/library/Zend/ModuleManager/ModuleManager.php).
+We now have a module that can be detected by ZF2s [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php).
+Let's try to add this module to our application. Even though it doesn't do anything yet, it can already be loaded
+by the [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php).
 To add this module to the application, add the entry `Album` to the file `/config/application.config.php` inside the
 `modules` array.
 
 ```php
 <?php
 return array(
-    // This should be an array of module namespaces used in the application.
     'modules' => array(
         'Application',
         'Album'         //@todo Highlight this line at .rts
     ),
 
-    // These are various ......
-    // .... all the other stuff remains the same
+    // ...
 );
 ```
 
-If you refresh your browser you should see no change at all, but no error message either. If that's the case then
-continue to the next chapter. If you encounter any error, be sure to spell-check anything and follow the tutorial step
-by step.
+If you refresh your application you should see no change at all, but no error message either. You may wonder why we
+stopped at this place. This is due to the fact that you need to understand what a Module actually is. A Module isn't
+necessarily something you see. A Module is able to perform certain tasks for the application in the background without
+you noticing anything. Even if our Module doesn't do anything right now it proves the point I'm making here.
+
+A Module, in short, is an encapsulated set of features for your whole application. It can be a Module like the one we're
+creating, it could be a Module that takes care of caching heavy tasks of another Module or it can be something that
+gives you new configuration options, like EdpModuleLayouts. //@todo maybe give another example, but i think it's a good  one and a fine place to put it
+
+Whenever you're creating a Module try to keep the tasks a single Module performs rather few than too many. If applicable
+try to build them as reusable as possible, good examples for this would be Authentication- and Authorization-Modules.
 
 
 Configuring the Module
@@ -57,10 +63,40 @@ Configuring the Module
 
 Now that we have our module running it's time to start configuring it. To start of this process we will add a new
 *route* to our application so that our module will be accessible through the url `domain.loc/album`. Achieving this
-goal is done by letting the [`ModuleManager`](https://github.com/zendframework/zf2/blob/master/library/Zend/ModuleManager/ModuleManager.php)
-know that our module actually does provide some configuration. This is done by adding and implementing the
-[`ConfigProviderInterface`](https://github.com/zendframework/zf2/blob/master/library/Zend/ModuleManager/Feature/ConfigProviderInterface.php).
-Continue by doing this to your `/module/Album/Module.php`
+goal is done by letting the [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php)
+know that our module actually does provide some configuration. This is done by implementing the
+[`ConfigProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/ConfigProviderInterface.php).
+or rather the `getConfig()` method which the [`ConfigProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/ConfigProviderInterface.php).
+defines. Actually implementing the interface is optional. Continue by editing to your `/module/Album/Module.php`
+
+```php
+<?php
+namespace Album;
+
+use Zend\ModuleManager\Feature\ConfigProviderInterface;
+
+class Module implements ConfigProviderInterface
+{
+    public function getConfig()
+    {
+        return array();
+    }
+}
+```
+
+With this we let the [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php)
+know that our module does provide some configuration for the application. However we are not done yet. The `getConfig()`
+function expects to return an `array` or `\Traversable` object. We will stick with the `array` version. To further keep our
+project organized in a good fashion we actually outsource this array into a separate file. Go ahead and create this
+file under `/module/Album/config/module.config.php`:
+
+```php
+<?php
+return array();
+```
+
+Now we will rewrite the `getConfig()` function to include this newly created file instead of directly returning the
+array.
 
 ```php
 <?php
@@ -77,30 +113,26 @@ class Module implements ConfigProviderInterface
 }
 ```
 
-With this we let the [`ModuleManager`](https://github.com/zendframework/zf2/blob/master/library/Zend/ModuleManager/ModuleManager.php)
-know that our module does provide some configuration for the application. However we are not done yet. The `getConfig()`
-function expects to return an array or \\Traversable object. We will stick with the array version. And to further keep
-our project organized in a well fashion we actually outsource this array into a separate file. Go ahead and create this
-file under `/module/Album/config/module.config.php`:
-
-```php
-<?php
-return array();
-```
-
-Try reloading your browser once and hopefully everything remains as it is and no error occurs. This is so because we
-haven't actually added any configuration to our module yet. Let's finally get started and add the new route to our
-module:
+Try reloading your application once and you'll see that everything remains as it is and no error occurs. This is so
+because we haven't actually added any configuration to our module yet. Let's finally get started and add the new route
+to our module:
 
 ```php
 <?php
 return array(
+    // This lines opens the configuration for the RouteManager
     'router' => array(
+        // Open configuration for all possible routes
         'routes' => array(
+            // Create a new route called "album-default"
             'album-default' => array(
+                // Define the routes type to be "Literal", which is basically just a string
                 'type' => 'Zend\Mvc\Router\Http\Literal',
+                // Configure the route itself
                 'options' => array(
+                    // Listen to "/album" as uri
                     'route'    => '/album',
+                    // Define default controller and action to be called when this route is matched
                     'defaults' => array(
                         'controller' => 'Album\Controller\List',
                         'action'     => 'index',
@@ -127,7 +159,7 @@ Album\Controller\List(resolves to invalid controller class or alias: Album\Contr
 No Exception available
 ```
 
-We now need to tell our module where to fine this controller named `Album\Controller\List`. To achieve this we have
+We now need to tell our module where to find this controller named `Album\Controller\List`. To achieve this we have
 to add this key to the `controllers` configuration key.
 
 ```php
@@ -155,7 +187,7 @@ the page results into yet another error:
 This error tells us that the application know what class we want to access but sadly it simply cannot find the class.
 That happens because our module never told the application where to find the classes that our module provides. To
 have this information passed from our module to the application we need to add and implement the
-[`AutoloaderProviderInterface`](https://github.com/zendframework/zf2/blob/master/library/Zend/ModuleManager/Feature/AutoloaderProviderInterface.php)
+[`AutoloaderProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/AutoloaderProviderInterface.php)
 to our `Module` class.
 
 ```php
@@ -174,6 +206,7 @@ class Module implements
         return array(
             'Zend\Loader\StandardAutoloader' => array(
                 'namespaces' => array(
+                    // Autoload all classes from namespace 'Album' from '/module/Album/src/Album'
                     __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
                 )
             )
@@ -187,19 +220,20 @@ class Module implements
 }
 ```
 
-Now this looks like a lot of change but don't be afraid. The [`AutoloaderProviderInterface`](https://github.com/zendframework/zf2/blob/master/library/Zend/ModuleManager/Feature/AutoloaderProviderInterface.php)
+Now this looks like a lot of change but don't be afraid. The [`AutoloaderProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/AutoloaderProviderInterface.php)
 defines that our module has to tell the application where to find its classes. For this we have a pretty easy
 implementation of the `Zend\Loader\StandardAutoloader` that tells the application that all classes under the namespace
 `__NAMESPACE__` (`Album`) are found inside the `/src` folder inside the current directory and then once again inside a
 folder that's named like our namespace. So:
 
 All classes that have the namespace `Album` are found inside `/module/Album/src/Album`. This holds true as long as we
-hold on to [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md).
+hold on to [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md). `PSR-0` is a community
+driven standard that describes the mandatory requirements that must be adhered to for autoloader interoperability.
 
 If you refresh the browser now you'll see that the error remains the same. And this is logical because remember what
 we did by now. We do have told the application where to find the controller now, but we have yet to actually write the
-controller itself. So let's continue with this. Let's create a controller class `Album\Controller\ListController`. To
-reflect [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md) we do separate namespaces into folders so you'll find this file under
+controller itself. Let's create a controller class `Album\Controller\ListController`. To reflect [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md)
+we do separate namespaces into folders so you'll find this file under
 `/module/Album/src/Album/Controller/ListController.php`:
 
 ```php
@@ -228,10 +262,15 @@ Message:
 Controller of type Album\Controller\ListController is invalid; must implement Zend\Stdlib\DispatchableInterface
 ```
 
+This happens because our controller must implement [`Zend\Stdlib\DispatchableInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/Stdlib/DispatchableInterface.php) in order to be 'dispatched'
+(or run) by ZendFramework's MVC layer. ZendFramework provides some base controller implementation of it with
+[`AbstractActionController`](https://github.com/zendframework/zf2/:current_branch/library/Zend/Mvc/Controller/AbstractActionController.php),
+which we are going to use.
+
 Explaining this goes beyond the scope of a QuickStart Tutorial but it is important that you see it. It basically tells
 you that the application found something but has no idea how to deal with it. In MVC terms spoken: our application is
 unable to dispatch the request through the controller we have given the application. We can solve this very easily by
-having our controller extend the [`AbstractActionController`](https://github.com/zendframework/zf2/blob/master/library/Zend/Mvc/Controller/AbstractActionController.php).
+having our controller extend the .
 Let's modify our controller now:
 
 ```php
