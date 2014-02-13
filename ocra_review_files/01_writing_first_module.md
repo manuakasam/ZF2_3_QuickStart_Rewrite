@@ -275,13 +275,7 @@ Controller of type Album\Controller\ListController is invalid; must implement Ze
 This happens because our controller must implement [`Zend\Stdlib\DispatchableInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/Stdlib/DispatchableInterface.php) in order to be 'dispatched'
 (or run) by ZendFramework's MVC layer. ZendFramework provides some base controller implementation of it with
 [`AbstractActionController`](https://github.com/zendframework/zf2/:current_branch/library/Zend/Mvc/Controller/AbstractActionController.php),
-which we are going to use.
-
-Explaining this goes beyond the scope of a QuickStart Tutorial but it is important that you see it. It basically tells
-you that the application found something but has no idea how to deal with it. In MVC terms spoken: our application is
-unable to dispatch the request through the controller we have given the application. We can solve this very easily by
-having our controller extend the .
-Let's modify our controller now:
+which we are going to use. Let's modify our controller now:
 
 ```php
 <?php
