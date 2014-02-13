@@ -22,6 +22,7 @@ all we need to do is create a PHP-Class named `Module` under our module's namesp
 
 ```php
 <?php
+// FileName: /module/Album/src/Album/Module.php
 namespace Album;
 
 class Module {}
@@ -35,6 +36,7 @@ To add this module to the application, add the entry `Album` to the file `/confi
 
 ```php
 <?php
+// FileName: /config/application.config.php
 return array(
     'modules' => array(
         'Application',
@@ -71,6 +73,7 @@ defines. Actually implementing the interface is optional. Continue by editing to
 
 ```php
 <?php
+// FileName: /module/Album/src/Album/Module.php
 namespace Album;
 
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
@@ -92,6 +95,7 @@ file under `/module/Album/config/module.config.php`:
 
 ```php
 <?php
+// FileName: /module/Album/config/module.config.php
 return array();
 ```
 
@@ -100,6 +104,7 @@ array.
 
 ```php
 <?php
+// FileName: /module/Album/src/Album/Module.php
 namespace Album;
 
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
@@ -119,6 +124,7 @@ to our module:
 
 ```php
 <?php
+// FileName: /module/Album/config/module.config.php
 return array(
     // This lines opens the configuration for the RouteManager
     'router' => array(
@@ -160,10 +166,11 @@ No Exception available
 ```
 
 We now need to tell our module where to find this controller named `Album\Controller\List`. To achieve this we have
-to add this key to the `controllers` configuration key.
+to add this key to the `controllers` configuration key inside your `/module/Album/config/module.config.php`.
 
 ```php
 <?php
+// FileName: /module/Album/config/module.config.php
 return array(
     'controllers' => array(
         'invokables' => array(
@@ -193,6 +200,7 @@ function defined by the interface.
 
 ```php
 <?php
+// FileName: /module/Album/src/Album/Module.php
 namespace Album;
 
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
@@ -239,6 +247,7 @@ we do separate namespaces into folders so you'll find this file under
 
 ```php
 <?php
+// FileName: /module/Album/src/Album/Controller/ListController.php
 namespace Album\Controller;
 
 class ListController {}
@@ -276,6 +285,7 @@ Let's modify our controller now:
 
 ```php
 <?php
+// FileName: /module/Album/src/Album/Controller/ListController.php
 namespace Album\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
@@ -318,6 +328,7 @@ need to let the application know where to look for view files. We do this within
 
 ```php
 <?php
+// FileName: /module/Album/config/module.config.php
 return array(
     'view_manager' => array(
         'template_path_stack' => array(
