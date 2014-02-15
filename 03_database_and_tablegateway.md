@@ -96,3 +96,189 @@ the database itself. Zend Framework provides us with a DB-Adapter implementation
 
 Even if we're not done yet, let's see what happens if we try to use this TableGateway implementation at our
 `AlbumService` right now.
+
+
+AlbumTableGateway as Datasource
+===============================
+
+As mentioned within the previous chapter we want to use our `AlbumService` as single point of contact when dealing with
+Album data. To make this happen we have to being the `AlbumTableGateway`-Service into the `AlbumService`. This is done
+by using dependency injection the same way as we have done previously with our controller. Since now the `AlbumService`
+will have a dependency we have to move it from the `invokables` into `factories` and create a factory class for this.
+Start of by changing the configuration within `module.config.php`
+
+```php
+<?php
+// FileName: /module/Album/config/module.config.php
+return array(
+    'service_manager' => array(
+        'factories' => array(
+            'Album\Service\AlbumService' => 'Album\Service\Factory\AlbumServiceFactory'
+        )
+    ),
+    'view_manager' => array( /* ... */ ),
+    'controllers' => array( /* ... */ ),
+    'router' => array( /* ... */ )
+);
+```
+
+Before you continue and create the `AlbumServiceFactory` please reload your application. When doing so you'll be
+presented an exception that doesn't really seem to make sense.
+
+```text
+An error occurred
+An error occurred during execution; please try again later.
+
+Additional information:
+Zend\ServiceManager\Exception\ServiceNotCreatedException
+
+File:
+{libraryPath}\Zend\ServiceManager\ServiceManager.php:{lineNumber}
+
+Message:
+An exception was raised while creating "Album\Controller\List"; no instance returned
+```
+
+Right now the `ServiceManager` lets you know that there was an exception while creating `Album\Controller\List`. All we
+changed was the `AlbumService` though. This is due to the fact that `AlbumService` is a dependency of the
+`Album\Controller\List` and due to the `AlbumServiceFactory` not existing this weird error happens. This becomes more
+obvious when you notice that we actually have a previous exception displayed on the error page.
+
+```text
+Previous exceptions:
+Zend\ServiceManager\Exception\ServiceNotCreatedException
+
+File:
+{libraryPath}\Zend\ServiceManager\ServiceManager.php:{lineNumber}
+
+Message:
+While attempting to create albumservicealbumservice(alias: Album\Service\AlbumService) an invalid factory was registered for this instance type.
+```
+
+The previous exception let's you know that the error is actually the alias `Album\Service\AlbumService` because we
+have defined an invalid factory class for this alias. Let's fix this and create the factory class.
+
+```php
+<?php
+// Filename: /module/Album/src/Album/Service/Factory/AlbumServiceFactory.php
+namespace Album\Service\Factory;
+
+use Album\Service\AlbumService;
+use Zend\ServiceManager\FactoryInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
+
+class AlbumServiceFactory implements FactoryInterface
+{
+    public function createService(ServiceLocatorInterface $serviceLocator)
+    {
+        return new AlbumService();
+    }
+}
+```
+
+Reloading your application brings us back to our previous standing but that's actually not something we want. Now we
+want to change the `AlbumService`-Class to use the `AlbumTableGateway` as a dependency. Go ahead and change the
+`AlbumService` so that it requires an instance of a `TableGatewayInterface` within it's `__construct()`. Furthermore
+you can delete the `$data`-property because we won't need it anymore.
+
+```php
+<?php
+// Filename: /module/Album/src/Album/Service/AlbumService.php
+namespace Album\Service;
+
+use Album\Model\Album;
+use Zend\Db\TableGateway\TableGatewayInterface;
+
+class AlbumService implements AlbumServiceInterface
+{
+    protected $tableGateway;
+
+    public function __construct(TableGatewayInterface $tableGateway)
+    {
+        $this->tableGateway = $tableGateway;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function findAllAlbums()
+    {
+        $allAlbums = array();
+
+        foreach ($this->data as $index => $album) {
+            $allAlbums[] = $this->findAlbum($index);
+        }
+
+        return $allAlbums;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function findAlbum($id)
+    {
+        $albumData = $this->data[$id];
+
+        $model = new Album();
+        $model->setId($albumData['id']);
+        $model->setTitle($albumData['title']);
+        $model->setArtist($albumData['artist']);
+
+        return $model;
+    }
+}
+```
+
+Reloading the application would now reveal a fatal error telling us that we do have to give the `AlbumService` an
+instance of the `TableGatewayInterface`.
+
+```text
+( ! ) Catchable fatal error: Argument 1 passed to Album\Service\AlbumService::__construct()
+      must be an instance of Zend\Db\TableGateway\TableGatewayInterface, none given,
+      called in /module/Album/src/Album/Service/Factory/AlbumServiceFactory.php on line 13
+      and defined in /module/Album/src/Album/Service/AlbumService.php on line 12
+```
+
+Fix this by injecting the `AlbumTableGateway` into the `AlbumService` from within the factory `AlbumServiceFactory`
+
+```php
+<?php
+// Filename: /module/Album/src/Album/Service/Factory/AlbumServiceFactory.php
+namespace Album\Service\Factory;
+
+use Album\Service\AlbumService;
+use Zend\ServiceManager\FactoryInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
+
+class AlbumServiceFactory implements FactoryInterface
+{
+    public function createService(ServiceLocatorInterface $serviceLocator)
+    {
+        return new AlbumService(
+            $serviceLocator->get('AlbumTableGateway')
+        );
+    }
+}
+```
+
+Fixing one error should lead to another so reload the application and see what we get this time.
+
+```text
+An error occurred
+An error occurred during execution; please try again later.
+
+Additional information:
+Zend\ServiceManager\Exception\ServiceNotFoundException
+
+File:
+{libraryPath}\library\Zend\ServiceManager\ServiceManager.php:{lineNumber}
+
+Message:
+Zend\ServiceManager\ServiceManager::get was unable to fetch or create an instance for Zend\Db\Adapter\Adapter
+```
+
+The `ServiceManager` doesn't know about the service `Zend\Db\Adapter\Adapter`. That's because we didn't define it yet.
+
+
+Setting up the Database connection
+==================================
