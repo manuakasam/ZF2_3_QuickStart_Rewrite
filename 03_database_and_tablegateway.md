@@ -91,4 +91,8 @@ As you can see we have implemented the `getServiceConfig()` function and we have
 `AlbumTableGateway`. The value of this service is an instance of the [`TableGateway`-Implementation]().
 The `TableGateway` requires at least two parameters. The first parameter defines the name of the table inside our
 database, which is `album`. The second parameter is the so-called `$dbAdapter` which basically is the connection to
-the database itself.
+the database itself. Zend Framework provides us with a DB-Adapter implementation, too, which listens to
+`Zend\Db\Adapter\Adapter`.
+
+Even if we're not done yet, let's see what happens if we try to use this TableGateway implementation at our
+`AlbumService` right now.
