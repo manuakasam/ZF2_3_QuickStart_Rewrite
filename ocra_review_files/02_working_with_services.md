@@ -97,7 +97,7 @@ First we'll create the `Interface`:
 
 ```php
 <?php
-//filename: /module/Album/src/Album/Model/AlbumInterface.php
+// Filename: /module/Album/src/Album/Model/AlbumInterface.php
 namespace Album\Model;
 
 interface AlbumInterface
@@ -374,7 +374,7 @@ appropriate dependency, we will first define the dependency inside the `ListCont
 
 ```php
 <?php
-// FileName: /module/Album/src/Album/Controller/ListController.php
+// Filename: /module/Album/src/Album/Controller/ListController.php
 namespace Album\Controller;
 
 use Album\Service\AlbumServiceInterface;
@@ -411,7 +411,7 @@ The solution to this lies within our definition of our controller inside the `mo
 
 ```php
 <?php
-// FileName: /module/Album/config/module.config.php
+// Filename: /module/Album/config/module.config.php
 return array(
     'view_manager' => array(/** ... */),
     'controllers' => array(
@@ -435,7 +435,7 @@ Let's modify our configuration like this:
 
 ```php
 <?php
-// FileName: /module/Album/config/module.config.php
+// Filename: /module/Album/config/module.config.php
 return array(
     'view_manager' => array(/** ... */),
     'controllers' => array(
@@ -483,7 +483,7 @@ always inject this using Dependency Injection as we have learned above. Let's im
 
 ```php
 <?php
-// FileName: /module/Album/src/Album/Controller/Factory/ListControllerFactory.php
+// Filename: /module/Album/src/Album/Controller/Factory/ListControllerFactory.php
 namespace Album\Controller\Factory;
 
 use Album\Controller\ListController;
@@ -552,7 +552,7 @@ inside our `controllers` array. Check out the new configuration file:
 
 ```php
 <?php
-// FileName: /module/Album/config/module.config.php
+// Filename: /module/Album/config/module.config.php
 return array(
     'service_manager' => array(
         'invokables' => array(
@@ -579,7 +579,7 @@ Let's now use the `AlbumService` within our `ListController`. For this we will n
 
 ```php
 <?php
-// FileName: /module/Album/src/Album/Controller/ListController.php
+// Filename: /module/Album/src/Album/Controller/ListController.php
 namespace Album\Controller;
 
 use Album\Service\AlbumServiceInterface;
@@ -625,6 +625,7 @@ through the `__call()` function which theoretically is a little slower. You won'
 Let's modify our view to display a table of all Albums we that our `AlbumService` returns.
 
 ```php
+<!-- Filename: /module/Album/view/album/list/index.phtml -->
 <h1>Albums</h1>
 
 <table>
