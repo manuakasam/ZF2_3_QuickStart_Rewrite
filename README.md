@@ -18,7 +18,7 @@ Each chapter has it's own branch and will be managed through a PR. Please check 
 
 1. [Chapter 01 - Writing your first module](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/7/files)
 2. [Chapter 02 - Services and the ServiceManager](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/8/files)
-2. [Chapter 03 - Database and TableGateway integration]()
+2. [Chapter 03 - Database and TableGateway integration](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/9/files)
 
 Just drop inline comments or do PRs against the branches.
 
