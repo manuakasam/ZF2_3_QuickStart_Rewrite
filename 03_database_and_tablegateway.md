@@ -407,3 +407,22 @@ class AlbumService implements AlbumServiceInterface
     }
 }
 ```
+
+As you can see both find-functions, `findAllAlbums()` and `findAlbum($id)`, have been changed to make use of the
+`TableGateway`-Implementation. While `findAllAlbums()` basically runs a `SELECT * FROM album` and returns a `ResultSet`-
+Object, the `findAlbum($id)`-function checks if a row with the given ID is present and if not throws an `\Exception`.
+
+The code itself should be quite self-explanatory. If you want to learn more about how the `TableGateway` works
+internally, please refer to the `TableGateway`-Section of the documentation. //@todo link the doc pages.
+
+Looking at your application now you'll see the lovely error message
+
+```text
+Fatal error: Call to undefined method ArrayObject::getId() in \module\Album\view\album\list\index.phtml on line 14
+```
+
+This is due to the fact that we no longer get an `Album`-Object returned from our `AlbumService` but rather an instance
+of an `ArrayObject` from the `AlbumTableGateway`. However, fixing this doesn't belong to this chapter. Just know that the
+above error message is exactly where you want to be, right now.
+
+
