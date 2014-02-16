@@ -282,3 +282,128 @@ The `ServiceManager` doesn't know about the service `Zend\Db\Adapter\Adapter`. T
 
 Setting up the Database connection
 ==================================
+
+As mentioned previously we are going to set up a connection to the database through PHP's PDO Adapter. Zend Framework
+provides us with a very handy way to be doing so. All we need to do is set up a Service-Factory and provide the
+respective database configuration. The Service-Factory that we're going to use is called
+`Zend\Db\Adapter\AdapterServiceFactory` which internally tries to create a PDO connection with data from the
+configuration key `db`. Let's first set up the adapter inside our `module.config.php`:
+
+```php
+<?php
+// FileName: /module/Album/config/module.config.php
+return array(
+    'service_manager' => array(
+        'factories' => array(
+            'Album\Service\AlbumService' => 'Album\Service\Factory\AlbumServiceFactory',
+            'Zend\Db\Adapter\Adapter'    => 'Zend\Db\Adapter\AdapterServiceFactory'
+        )
+    ),
+    'view_manager' => array( /* ... */ ),
+    'controllers' => array( /* ... */ ),
+    'router' => array( /* ... */ )
+);
+```
+
+Just for the fun of it you can reload your application and scroll down the long list of exceptions. Even with the
+initial exception being `An exception was raised while creating "Album\Controller\List"; no instance returned`, when
+scrolling down it'll become clear that the root cause for this error is the DB-Adapter. And this is so because we have
+yet to define the connection parameters for it. Create the config key `db` and provide the necessary connection
+parameters:
+
+```php
+<?php
+// FileName: /module/Album/config/module.config.php
+return array(
+    'db' => array(
+        'driver'         => 'Pdo',
+        'dsn'            => 'mysql:dbname=zf2tutorial;host=localhost',
+        'driver_options' => array(
+            PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'UTF8\''
+        ),
+    ),
+    'service_manager' => array(
+        'factories' => array(
+            'Album\Service\AlbumService' => 'Album\Service\Factory\AlbumServiceFactory',
+            'Zend\Db\Adapter\Adapter'    => 'Zend\Db\Adapter\AdapterServiceFactory'
+        )
+    ),
+    'view_manager' => array( /* ... */ ),
+    'controllers' => array( /* ... */ ),
+    'router' => array( /* ... */ )
+);
+```
+
+You should notice that we didn't define a `username` or `password` in this config file. This is due to security concerns.
+During the past years it's become a common notion to put credential files in so called `.local.php`-files. Any file
+containing `.local` should not be shared between instances or be uploaded to things like GitHub or other SCM. Within
+`application.config.php` the Skeletton Application defines for all `.local` files to be automatically loaded from within
+the `/config/autoload` directory. Let's make use of this by creating the config file that provides our credentials:
+
+```php
+<?php
+// Filename: /config/autoload/credentials.local.php
+return array(
+    'db' => array(
+        'username' => 'YOUR USERNAME HERE',
+        'password' => 'YOUR PASSWORD HERE',
+    )
+);
+```
+
+
+Using Zend\Db\TableGateway\TableGateway
+=======================================
+
+With all of this set up we have our database connection in place and can start to make use of it. Right now our
+album module tells us that we have `provided an invalid argument for our foreach()` function within the `AlbumService`-
+Class. This is because our `findAllAlbums()` function is still using the static data provider. Let's change the function
+to make use of the `TableGateway`!
+
+```php
+<?php
+// Filename: /module/Album/src/Album/Service/AlbumService.php
+namespace Album\Service;
+
+use Album\Model\Album;
+use Zend\Db\TableGateway\TableGatewayInterface;
+
+class AlbumService implements AlbumServiceInterface
+{
+    protected $tableGateway;
+
+    public function __construct(TableGatewayInterface $tableGateway)
+    {
+        $this->tableGateway = $tableGateway;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function findAllAlbums()
+    {
+        $resultSet = $this->tableGateway->select();
+
+        return $resultSet;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function findAlbum($id)
+    {
+        $id     = (int) $id;
+        $rowset = $this->tableGateway->select(array(
+            'id' => $id
+        ));
+
+        $row  = $rowset->current();
+
+        if (!$row) {
+            throw new \Exception("Could not find row $id");
+        }
+
+        return $row;
+    }
+}
+```
