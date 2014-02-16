@@ -25,14 +25,16 @@ all we need to do is create a PHP-Class named `Module` under our module's namesp
 // Filename: /module/Album/src/Album/Module.php
 namespace Album;
 
-class Module {}
+class Module
+{
+}
 ```
 
-We now have a module that can be detected by ZF2s [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php).
-Let's try to add this module to our application. Even though it doesn't do anything yet, it can already be loaded
-by the [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php).
-To add this module to the application, add the entry `Album` to the file `/config/application.config.php` inside the
-`modules` array.
+We now have a module that can be detected by Zend Frameworks [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php).
+Let's add this module to our application. Although our module doesn't do anything yet, just having the `Module.php`
+class allows it to be loaded by Zend Framework's [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php).
+To do this, add an entry for `Album` to the modules array inside the main application config file at
+`/config/application.config.php`:
 
 ```php
 <?php
@@ -47,29 +49,27 @@ return array(
 );
 ```
 
-If you refresh your application you should see no change at all, but no error message either. You may wonder why we
-stopped at this place. This is due to the fact that you need to understand what a Module actually is. A Module isn't
-necessarily something you see. A Module is able to perform certain tasks for the application in the background without
-you noticing anything. Even if our Module doesn't do anything right now it proves the point I'm making here.
+If you refresh your application you should see no change at all (but also no errors).
 
-A Module, in short, is an encapsulated set of features for your whole application. It can be a Module like the one we're
-creating, it could be a Module that takes care of caching heavy tasks of another Module or it can be something that
-gives you new configuration options, like EdpModuleLayouts. //@todo maybe give another example, but i think it's a good  one and a fine place to put it
+At this point it's worth taking a step back to discuss what modules are for. In short, a module is an encapsulated
+set of features for your application. A module might add features to the application that you can see, like our
+Album module; or it might provide background functionality for other modules in the application to use,  such as
+interacting with a third party API.
 
-Whenever you're creating a Module try to keep the tasks a single Module performs rather few than too many. If applicable
-try to build them as reusable as possible, good examples for this would be Authentication- and Authorization-Modules.
-
+Organizing your code into modules makes it easier for you to reuse functionality in other application, or to use
+modules written by the community.
 
 Configuring the Module
 ======================
 
-Now that we have our module running it's time to start configuring it. To start of this process we will add a new
-*route* to our application so that our module will be accessible through the url `domain.loc/album`. Achieving this
-goal is done by letting the [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php)
-know that our module actually does provide some configuration. This is done by implementing the
-[`ConfigProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/ConfigProviderInterface.php).
-or rather the `getConfig()` method which the [`ConfigProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/ConfigProviderInterface.php).
-defines. Actually implementing the interface is optional. Continue by editing to your `/module/Album/Module.php`
+The next thing we're going to do is add a route to our application so that our module can be accessed through the
+URL `domain.loc/album`. We do this by adding router configuration to our module, but first we need to let the
+`ModuleManager` know that our module has configuration that it needs to load.
+
+This is done by adding a `getConfig()` function to the `Module` class that returns the configuration. (This function is
+defined in the `ConfigProviderInterface` although actually implementing this interface in the module class is optional.)
+This function should return either an `array` or a `Traversable` object. Continue by editing your
+`/module/Album/Module.php`:
 
 ```php
 <?php
