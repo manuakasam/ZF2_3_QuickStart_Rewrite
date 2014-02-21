@@ -194,3 +194,20 @@ the `controller` would be "Application\Controller\weird" and the `action` would 
 guess by the names let's assume neither `controller` nor `action` does exist. The route will still match but an
 `Exception` will be thrown because the `Router` will be unable to find the requested resources and we'll receive
 a `404`-Response.
+
+
+Explicit routes using `child_routes`
+------------------------------------
+
+tbw
+
+
+A practical example
+===================
+
+tbw
+- routing for single album
+- routing for add album
+- routing for edit album
+- routing for delete album
+- functionality for single album
