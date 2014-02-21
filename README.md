@@ -20,6 +20,7 @@ Each chapter has it's own branch and will be managed through a PR. Please check 
 2. [Chapter 02 - Services and the ServiceManager](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/8/files)
 3. [Chapter 03 - Database and TableGateway integration](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/10/files)
 4. [Chapter 04 - Working with Hydrators](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/11/files)
+5. [Chapter 05 - Understanding Routing](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/12/files)
 
 Just drop inline comments or do PRs against the branches.
 
