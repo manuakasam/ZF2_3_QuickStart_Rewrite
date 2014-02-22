@@ -33,7 +33,7 @@ literal route looks like this:
 'router' => array(
     'routes' => array(
         'about' => array(
-            'type' => 'Zend\Mvc\Router\Http\Literal',
+            'type' => 'literal',
             'options' => array(
                 'route'    => '/about-me',
                 'defaults' => array(
@@ -73,7 +73,7 @@ look like this:
 'router' => array(
     'routes' => array(
         'archives' => array(
-            'type' => 'Zend\Mvc\Router\Http\Segment',
+            'type' => 'segment',
             'options' => array(
                 'route'    => '/news/archive/:year',
                 'defaults' => array(
@@ -110,7 +110,7 @@ example route to have the `year` parameter optional and use the current year as 
 'router' => array(
     'routes' => array(
         'archives' => array(
-            'type' => 'Zend\Mvc\Router\Http\Segment',
+            'type' => 'segment',
             'options' => array(
                 'route'    => '/news/archive[/:year]',
                 'defaults' => array(
@@ -156,7 +156,7 @@ ZendSkeletonApplication uses a very generic route, too. Let's take a look at a g
 'router' => array(
     'routes' => array(
         'default' => array(
-            'type' => 'Zend\Mvc\Router\Http\Segment',
+            'type' => 'segment',
             'options' => array(
                 'route'    => '/[:controller[/:action]]',
                 'defaults' => array(
@@ -211,7 +211,7 @@ in the following configuration:
 'router' => array(
     'routes' => array(
         'news' => array(
-            'type' => 'Zend\Mvc\Router\Http\Literal',
+            'type' => 'literal',
             'options' => array(
                 'route'    => '/news',
                 'defaults' => array(
@@ -221,7 +221,7 @@ in the following configuration:
             ),
         ),
         'news-archive' => array(
-            'type' => 'Zend\Mvc\Router\Http\Segment',
+            'type' => 'segment',
             'options' => array(
                 'route'    => '/news/archive[/:year]',
                 'defaults' => array(
@@ -234,7 +234,7 @@ in the following configuration:
             ),
         ),
         'news-single' => array(
-            'type' => 'Zend\Mvc\Router\Http\Segment',
+            'type' => 'segment',
             'options' => array(
                 'route'    => '/news/:id',
                 'defaults' => array(
@@ -264,7 +264,7 @@ a look at a `child_route` configuration using the same example as above:
 'router' => array(
     'routes' => array(
         'news' => array(
-            'type' => 'Zend\Mvc\Router\Http\Literal',
+            'type' => 'literal',
             'options' => array(
                 'route'    => '/news',
                 'defaults' => array(
@@ -276,7 +276,7 @@ a look at a `child_route` configuration using the same example as above:
             'may_terminate' => true,
             'child_routes' => array(
                 'archive' => array(
-                    'type' => 'Zend\Mvc\Router\Http\Segment',
+                    'type' => 'segment',
                     'options' => array(
                         'route'    => '/archive[/:year]',
                         'defaults' => array(
@@ -288,7 +288,7 @@ a look at a `child_route` configuration using the same example as above:
                     ),
                 ),
                 'single' => array(
-                    'type' => 'Zend\Mvc\Router\Http\Segment',
+                    'type' => 'segment',
                     'options' => array(
                         'route'    => '/:id',
                         'defaults' => array(
@@ -356,7 +356,7 @@ return array(
     'router' => array(
         'routes' => array(
             'album' => array(
-                'type' => 'Zend\Mvc\Router\Http\Literal',
+                'type' => 'literal',
                 'options' => array(
                     'route'    => '/album',
                     'defaults' => array(
@@ -367,7 +367,7 @@ return array(
                 'may_terminate' => true,
                 'child_routes'  => array(
                     'detail' => array(
-                        'type' => 'Zend\Mvc\Router\Http\Segment',
+                        'type' => 'segment',
                         'options' => array(
                             'route'    => '/:id',
                             'defaults' => array(
