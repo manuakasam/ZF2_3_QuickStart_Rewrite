@@ -11,6 +11,16 @@ Discussing the outline
 In this repository you'll only see the file outline.md. This file contains all the content that I plan to write. If
 there's any contents missing, be sure to point this out in here.
 
+Demo Application
+================
+
+The whole code for the AlbumDemoApplication can be found in this repository
+
+- [manuakasam/ZF3AlbumDemo](https://github.com/manuakasam/ZF3AlbumDemo)
+
+There's a couple of differences to the code layed out within the tutorial as that code is just
+a proof of concept I did. It will be updated to PHP 5.3 standards at a later point in time.
+
 Discussing the chapters
 =======================
 
