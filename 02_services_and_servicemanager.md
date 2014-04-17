@@ -61,7 +61,8 @@ return value all in all are of type `Album\Model\Album`. We will define this cla
 just create the `AlbumService` first.
 
 Create the class `AlbumService` at `/module/Album/src/Album/Service/AlbumService.php`, be sure to implement the
-`AlbumServiceInterface` and it's required functions. You then should have a class that looks like the following:
+`AlbumServiceInterface` and it's required functions (we will fill in these functions later). You then should have a
+class that looks like the following:
 
 ```php
 <?php
@@ -110,13 +111,6 @@ interface AlbumInterface
     public function getId();
 
     /**
-     * Will set the ID of the Album
-     *
-     * @param int $id
-     */
-    public function setId($id);
-
-    /**
      * Will return the TITLE of the Album
      *
      * @return string
@@ -124,31 +118,21 @@ interface AlbumInterface
     public function getTitle();
 
     /**
-     * Will set the TITLE of the Album
-     *
-     * @param string $title
-     */
-    public function setTitle($title);
-
-    /**
      * Will return the ARTIST of the Album
      *
      * @return string
      */
     public function getArtist();
-
-    /**
-     * Will set the ARTIST of the Album
-     *
-     * @param string $artist
-     */
-    public function setArtist($artist);
 }
 ```
 
+Notice that we only created getter-functions here. This is because right now we don't bother how the data gets inside
+the Album-class. All we care for is that we're able to access the properties through these getter-functions.
+
 And now we'll create the appropriate Model file associated with the interface. Make sure to set the required class
-properties and fill the getter and setter functions defined by our `AlbumInterface` with some useful content. You
-then should have a class that looks like the following:
+properties and fill the getter functions defined by our `AlbumInterface` with some useful content. Even if our interface
+doesn't care about setter functions we will write them as we will fill our class with data through these. You then
+should have a class that looks like the following:
 
 ```php
 <?php
@@ -407,49 +391,46 @@ your browser and reload your project with the url `domain.loc/album`, you'd see 
 
 And this error message is expected. It tells you exactly that our `ListController` expects to be passed an implementation
 of the `AlbumServiceInterface`. So how do we make sure that our `ListController` will receive such an implementation?
-The solution to this lies within our definition of our controller inside the `module.config.php`. Let's review:
+To solve this, we need to tell the application how to create instances of the `Album\Controller\ListController`. If you
+remember back to when we created the controller, we added an entry to the `invokables` array in the module config:
 
 ```php
 <?php
 // Filename: /module/Album/config/module.config.php
 return array(
-    'view_manager' => array(/** ... */),
-    'controllers' => array(
+    'view_manager' => array( /** ViewManager Config */ ),
+    'controllers'  => array(
         'invokables' => array(
             'Album\Controller\List' => 'Album\Controller\ListController'
         )
     ),
-    'router' => array(/** ... *)
+    'router' => array( /** Router Config */ )
 );
 ```
 
-As you can see our controller name `Album\Controller\List` is defined under the key `invokables`. Whenever you place
-a class under the key `invokables` you let the [`Zend\Mvc\Controller\ControllerManager`](https://github.com/zendframework/zf2/blob/master/library/Zend/Mvc/Controller/ControllerManager.php)
-know that it should call the class without wiring in any hard written dependencies. In other words: our `ListController`
-can not be an `invokable` because it does have a hard written dependency called `AlbumServiceInterface`.
+An `invokable` is a class that can be constructed without any arguments. Since our `Album\Controller\ListController`
+now has a required argument, we need to change this. The `ControllerManager`, who is in charge of instantiating the
+controllers for us, also support using `factories`. A `factory` is a class that creates instances of another class.
+We'll create one for our `ListController`. Let's modify our configuration like this:
 
-The [`Zend\Mvc\Controller\ControllerManager`](https://github.com/zendframework/zf2/blob/master/library/Zend/Mvc/Controller/ControllerManager.php)
-does listen to another key, too, called `factories`. Factories are classes that are called from the Managers of the
-Zend Framework Application. Every factory-class is supposed to have a return value. Usually this return value is a class.
-Let's modify our configuration like this:
 
 ```php
 <?php
 // Filename: /module/Album/config/module.config.php
 return array(
-    'view_manager' => array(/** ... */),
+    'view_manager' => array( /** ViewManager Config */ ),
     'controllers' => array(
         'factories' => array(
-            'Album\Controller\List' => 'Album\Controller\Factory\ListControllerFactory'
+            'Album\Controller\List' => 'Album\Factory\ListControllerFactory'
         )
     ),
-    'router' => array(/** ... *)
+    'router' => array( /** Router Config */ )
 );
 ```
 
 As you can see we no longer have the key `invokables`, instead we now have the key `factories`. Furthermore the value
 of our controller name `Album\Controller\List` has been changed to not match the class `Album\Controller\ListController`
-directly but to rather call a class called `Album\Controller\Factory\ListControllerFactory`. If you refresh your browser
+directly but to rather call a class called `Album\Factory\ListControllerFactory`. If you refresh your browser
 you'll see a different error message:
 
 ```text
@@ -483,8 +464,8 @@ always inject this using Dependency Injection as we have learned above. Let's im
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Controller/Factory/ListControllerFactory.php
-namespace Album\Controller\Factory;
+// Filename: /module/Album/src/Album/Factory/ListControllerFactory.php
+namespace Album\Factory;
 
 use Album\Controller\ListController;
 use Zend\ServiceManager\FactoryInterface;
@@ -502,7 +483,7 @@ class ListControllerFactory implements FactoryInterface
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
         $realServiceLocator = $serviceLocator->getServiceLocator();
-        $albumService       = $realServiceLocator->get('Album\Service\AlbumService');
+        $albumService       = $realServiceLocator->get('Album\Service\AlbumServiceInterface');
 
         return new ListController($albumService);
     }
@@ -510,19 +491,19 @@ class ListControllerFactory implements FactoryInterface
 ```
 
 Now this looks complicated! Let's start to look at the `$realServiceLocator`. When using a Factory-Class that will be
-called from the ControllerManager it will actually inject itself as the `$serviceLocator`. However we need the real
-ServiceManager to get to our ServiceClasses. This is why we call the function `getServiceLocator()` who will give us
-the real ServiceManager.
+called from the `ControllerManager` it will actually inject **itself** as the `$serviceLocator`. However we need the real
+`ServiceManager` to get to our Service-Classes. This is why we call the function `getServiceLocator()` who will give us
+the real `ServiceManager`.
 
 //@todo Appendix link. read more information about different Manager classes and there factory implementations
 
-After we have the `$realServiceLocator` set up we try to get a Service called `Album\Service\AlbumService`. This name
-that we're accessing is supposed to return the matching Service that we need. This Service is then passed along to the
-`ListController` which will directly be returned.
+After we have the `$realServiceLocator` set up we try to get a Service called `Album\Service\AlbumServiceInterface`.
+This name that we're accessing is supposed to return a Service that matches the `AlbumServiceInterface`. This Service
+is then passed along to the `ListController` which will directly be returned.
 
-Note though, that we do have defined the class `Album\Service\AlbumService` but we did *not* register any Service
-associated with this class yet. If you were to refresh your browser, the factory will be called but we will be greeted
-with yet another new error message. Check it out!
+Note though that we have yet to register a Service called `Album\Service\AlbumServiceInterface`. There's no magic
+happening that does this for us just because we give the Service the name of an Interface. Refresh your browser and you
+will see this error message:
 
 ```text
 An error occurred
@@ -535,12 +516,12 @@ File:
 {libraryPath}\Zend\ServiceManager\ServiceManager.php:{lineNumber}
 
 Message:
-Zend\ServiceManager\ServiceManager::get was unable to fetch or create an instance for Album\Service\AlbumService
+Zend\ServiceManager\ServiceManager::get was unable to fetch or create an instance for Album\Service\AlbumServiceInterface
 ```
 
 Exactly what we expected. Somewhere in our application - currently our factory class - a service called
-`Album\Service\AlbumService` is requested but the ServiceManager doesn't know about this Service yet. Therefore it isn't
-able to create an instance for the requested name.
+`Album\Service\AlbumServiceInterface` is requested but the ServiceManager doesn't know about this Service yet.
+Therefore it isn't able to create an instance for the requested name.
 
 
 Registering Services
@@ -556,20 +537,19 @@ inside our `controllers` array. Check out the new configuration file:
 return array(
     'service_manager' => array(
         'invokables' => array(
-            'Album\Service\AlbumService' => 'Album\Service\AlbumService'
+            'Album\Service\AlbumServiceInterface' => 'Album\Service\AlbumService'
         )
     ),
-    'view_manager' => array(/** ... */),
-    'controllers' => array(/** ... */),
-    'router' => array(/** ... */)
+    'view_manager' => array( /** View Manager Config */ ),
+    'controllers'  => array( /** Controller Config */ ),
+    'router'       => array( /** Router Config */ )
 );
 ```
 
-As you can see we now have added a new Service. It may look weird since both strings are identical, but remember in what
-way the configuration is actually set up. It's always a key=>value pair of `$serviceName => $serviceClass`. Since our
-Service has no dependencies we are able to add this Service under the `invokables` array. Try refreshing your browser.
-You should see no more error messages but rather exactly the page the we have created in the previous chapter of the
-Tutorial.
+As you can see we now have added a new Service that listens to the name `Album\Service\AlbumServiceInterface` and
+points to our own implementation which is `Album\Service\AlbumService`. Since our Service has no dependencies we are
+able to add this Service under the `invokables` array. Try refreshing your browser. You should see no more error
+messages but rather exactly the page that we have created in the previous chapter of the Tutorial.
 
 Using the Service at our Controller
 ===================================
@@ -659,6 +639,4 @@ And with this the current chapter is finished. We now have learned how to intera
 know what dependency injection is all about. We are now able to pass variables from our services into the view through
 a controller and we know how to iterate over arrays inside a view-script.
 
-If you have made it this far through the tutorial, the next chapter will be a breeze for you. We will simply implement
-the functionality to display a single album instead of all albums. For you, this should be a piece of cake! Go ahead if
-you're ready for it.
+In the next chapter we will take a first look at the things we should do when we want to get data from a database.
