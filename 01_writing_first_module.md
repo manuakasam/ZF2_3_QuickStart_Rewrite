@@ -22,7 +22,7 @@ all we need to do is create a PHP-Class named `Module` under our module's namesp
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Module.php
+// Filename: /module/Album/Module.php
 namespace Album;
 
 class Module
@@ -63,7 +63,7 @@ Configuring the Module
 ======================
 
 The next thing we're going to do is add a route to our application so that our module can be accessed through the
-URL `domain.loc/album`. We do this by adding router configuration to our module, but first we need to let the
+URL `localhost:8080/album`. We do this by adding router configuration to our module, but first we need to let the
 `ModuleManager` know that our module has configuration that it needs to load.
 
 This is done by adding a `getConfig()` function to the `Module` class that returns the configuration. (This function is
@@ -73,13 +73,18 @@ This function should return either an `array` or a `Traversable` object. Continu
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Module.php
+// Filename: /module/Album/Module.php
 namespace Album;
 
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
 
 class Module implements ConfigProviderInterface
 {
+    /**
+     * Returns configuration to merge with application configuration
+     *
+     * @return array|\Traversable
+     */
     public function getConfig()
     {
         return array();
@@ -87,11 +92,9 @@ class Module implements ConfigProviderInterface
 }
 ```
 
-With this we let the [`ModuleManager`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/ModuleManager.php)
-know that our module does provide some configuration for the application. However we are not done yet. The `getConfig()`
-function expects to return an `array` or `\Traversable` object. We will stick with the `array` version. To further keep our
-project organized in a good fashion we actually outsource this array into a separate file. Go ahead and create this
-file under `/module/Album/config/module.config.php`:
+With this our Module is now able to be configured. Configuration files can become quite big though and keeping
+everything inside the `getConfig()` function won't be optimal. To help keep our project organized we're going to put
+our array configuration in a separate file. Go ahead and create this file at `/module/Album/config/module.config.php`:
 
 ```php
 <?php
@@ -131,9 +134,9 @@ return array(
         // Open configuration for all possible routes
         'routes' => array(
             // Create a new route called "album-default"
-            'album-default' => array(
-                // Define the routes type to be "Literal", which is basically just a string
-                'type' => 'Zend\Mvc\Router\Http\Literal',
+            'album' => array(
+                // Define the routes type to be "Zend\Mvc\Router\Http\Literal", which is basically just a string
+                'type' => 'literal',
                 // Configure the route itself
                 'options' => array(
                     // Listen to "/album" as uri
@@ -142,18 +145,17 @@ return array(
                     'defaults' => array(
                         'controller' => 'Album\Controller\List',
                         'action'     => 'index',
-                    ),
-                ),
+                    )
+                )
             )
         )
     )
 );
 ```
 
-With this we have created a new route called `album-default` that listens to the url `domain.loc/album`. Whenever
-someone accesses this route a controller called `Album\Controller\List` will be accessed and more precisely its
-`indexAction()`. The problem is that this controller does not yet exist and if you reload the page you will be greeted
-with this lovely error message:
+We've now created a route called `album` that listens to the URL `localhost:8080/album`. Whenever someone accesses this
+route, the `indexAction()` function of the class `Album\Controller\List` will be executed. However, this controller
+does not exist yet, so if you reload the page you will see this error message:
 
 ```text
 A 404 error occurred
@@ -177,30 +179,26 @@ return array(
             'Album\Controller\List' => 'Album\Controller\ListController'
         )
     ),
-    'router' => array(
-        // our previous route configuration
-    )
+    'router' => array( /** Route Configuration */ )
 );
 ```
 
-The above configuration lets the application know that the controller key `Album\Controller\List` is meant as an alias
-for the class `ListController` under the namespace `Album\Controller`. Sadly though this isn't enough yet. Reloading
-the page results into yet another error:
+This configuration defines `Album\Controller\List` as an alias for the `ListController` under the namespace
+`Album\Controller`. Reloading the page should then give you:
 
 ```text
 ( ! ) Fatal error: Class 'Album\Controller\ListController' not found in {libPath}/Zend/ServiceManager/AbstractPluginManager.php on line {lineNumber}
 ```
 
-This error tells us that the application know what class we want to access but sadly it simply cannot find the class.
-That happens because our module never told the application where to find the classes that our module provides. Telling
-the application where to find classes is done by providing [autoloader](http://php.net/manual/de/language.oop5.autoload.php)
-configuration. This is done by addíng and implementing the [`AutoloaderProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/AutoloaderProviderInterface.php)
-to our `Module` class. Note that once again adding the interface is optional, all you need is the `getAutoloaderConfig()`
-function defined by the interface.
+This error tells us that the application knows what class to load, but not where to find it. To fix this, we need to
+configure [autoloading](http://www.php.net/manual/en/language.oop5.autoload.php) for our Module. Autoloading is a
+process to allow PHP to automatically load classes on demand. For our Module we set this up by adding a
+`getAutoloaderConfig()` function to our Module class. (This function is defined in the [`AutoloaderProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/AutoloaderProviderInterface.php),
+although the presence of the function is enough, actually implementing the interface is optional.)
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Module.php
+// Filename: /module/Album/Module.php
 namespace Album;
 
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
@@ -210,6 +208,11 @@ class Module implements
     AutoloaderProviderInterface,
     ConfigProviderInterface
 {
+    /**
+     * Return an array for passing to Zend\Loader\AutoloaderFactory.
+     *
+     * @return array
+     */
     public function getAutoloaderConfig()
     {
         return array(
@@ -222,6 +225,11 @@ class Module implements
         );
     }
 
+    /**
+     * Returns configuration to merge with application configuration
+     *
+     * @return array|\Traversable
+     */
     public function getConfig()
     {
         return include __DIR__ . '/config/module.config.php';
@@ -229,28 +237,26 @@ class Module implements
 }
 ```
 
-Now this looks like a lot of change but don't be afraid. The [`AutoloaderProviderInterface`](https://github.com/zendframework/zf2/:current_branch/library/Zend/ModuleManager/Feature/AutoloaderProviderInterface.php)
-defines that our module has to tell the application where to find its classes. For this we have a pretty easy
-implementation of the `Zend\Loader\StandardAutoloader` that tells the application that all classes under the namespace
-`__NAMESPACE__` (`Album`) are found inside the `/src` folder inside the current directory and then once again inside a
-folder that's named like our namespace. So:
+Now this looks like a lot of change but don't be afraid. We've added an `getAutoloaderConfig()` function which provides
+configuration for the `Zend\Loader\StandardAutoloader`. This configuration tells the application that classes
+in `__NAMESPACE__` (`Album`) can be found inside `__DIR__ . '/src/' . __NAMESPACE__` (`/module/Album/src/Album`).
 
-All classes that have the namespace `Album` are found inside `/module/Album/src/Album`. This holds true as long as we
-hold on to [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md). `PSR-0` is a community
-driven standard that describes the mandatory requirements that must be adhered to for autoloader interoperability.
+The `Zend\Loader\StandardAutoloader` uses a PHP community driven standard called [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md).
+Amongst other things, this standard defines a way for PHP to map class names to the file system. So with this
+configured, the application knows that our `Album\Controller\ListController` class should exist at
+`/module/Album/src/Album/Controller/ListController.php`.
 
-If you refresh the browser now you'll see that the error remains the same. And this is logical because remember what
-we did by now. We do have told the application where to find the controller now, but we have yet to actually write the
-controller itself. Let's create a controller class `Album\Controller\ListController`. To reflect [`PSR-0`](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md)
-we do separate namespaces into folders so you'll find this file under
-`/module/Album/src/Album/Controller/ListController.php`:
+If you refresh the browser now you'll see the same error, as even though we've configured the autoloader, we still need
+to create the controller class. Let's create this file now:
 
 ```php
 <?php
 // Filename: /module/Album/src/Album/Controller/ListController.php
 namespace Album\Controller;
 
-class ListController {}
+class ListController
+{
+}
 ```
 
 Reloading the page now will finally result into a new screen. The new error message looks like this:
@@ -284,10 +290,12 @@ namespace Album\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 
-class ListController extends AbstractActionController {}
+class ListController extends AbstractActionController
+{
+}
 ```
 
-It's now time for another refresh of the site. Big surprise, there's another error message for you.
+It's now time for another refresh of the site. You should now see a new error message:
 
 ```text
 An error occurred
@@ -330,12 +338,8 @@ return array(
             __DIR__ . '/../view',
         ),
     ),
-    'controllers' => array(
-        // our previous controllers configuration
-    ),
-    'router' => array(
-        // our previous route configuration
-    )
+    'controllers' => array( /** Controller Configuration */),
+    'router'      => array( /** Route Configuration */ )
 );
 ```
 
