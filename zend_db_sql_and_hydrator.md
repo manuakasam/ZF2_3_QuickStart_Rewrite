@@ -133,6 +133,7 @@ class ZendDbSqlMapper implements AlbumMapperInterface
      * @param int|string $id
      *
      * @return AlbumInterface
+     * @throws \InvalidArgumentException
      */
     public function find($id)
     {
@@ -178,6 +179,7 @@ class ZendDbSqlMapper implements AlbumMapperInterface
      * @param int|string $id
      *
      * @return AlbumInterface
+     * @throws \InvalidArgumentException
      */
     public function find($id)
     {
@@ -281,7 +283,7 @@ class ZendDbSqlMapper implements AlbumMapperInterface
      * @param int|string $id
      *
      * @return \Album\Entity\AlbumInterface
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function find($id)
     {
@@ -341,6 +343,7 @@ class ZendDbSqlMapper implements AlbumMapperInterface
      * @param int|string $id
      *
      * @return AlbumInterface
+     * @throws \InvalidArgumentException
      */
     public function find($id)
     {
@@ -414,6 +417,7 @@ class ZendDbSqlMapper implements AlbumMapperInterface
      * @param int|string $id
      *
      * @return AlbumInterface
+     * @throws \InvalidArgumentException
      */
     public function find($id)
     {
@@ -513,6 +517,7 @@ class ZendDbSqlMapper implements AlbumMapperInterface
      * @param int|string $id
      *
      * @return AlbumInterface
+     * @throws \InvalidArgumentException
      */
     public function find($id)
     {
@@ -602,6 +607,7 @@ class ZendDbSqlMapper implements AlbumMapperInterface
      * @param int|string $id
      *
      * @return AlbumInterface
+     * @throws \InvalidArgumentException
      */
     public function find($id)
     {
@@ -715,7 +721,7 @@ class ZendDbSqlMapper implements AlbumMapperInterface
      * @param int|string $id
      *
      * @return AlbumInterface
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function find($id)
     {
@@ -726,11 +732,11 @@ class ZendDbSqlMapper implements AlbumMapperInterface
         $stmt   = $sql->prepareStatementForSqlObject($select);
         $result = $stmt->execute();
 
-        if ($result instanceof ResultInterface && $result->isQueryResult()) {
+        if ($result instanceof ResultInterface && $result->isQueryResult() && $result->getAffectedRows()) {
             return $this->hydrator->hydrate($result->current(), $this->albumPrototype);
         }
 
-        throw new \Exception("Album with given ID:{$id} not found.");
+        throw new \InvalidArgumentException("Album with given ID:{$id} not found.");
     }
 
     /**
@@ -755,9 +761,10 @@ class ZendDbSqlMapper implements AlbumMapperInterface
 }
 ```
 
-The `find()` function looks really similar to the `findAll()` function. There's just two simple differences. Firstly we
-need to add a condition to the query to only select one row. This is done using the `where()` function of the `Sql`
-object. The return statement then will be hydrated using the injected hydrator into the prototype that is also injected.
+The `find()` function looks really similar to the `findAll()` function. There's just three simple differences. Firstly
+we need to add a condition to the query to only select one row. This is done using the `where()` function of the `Sql`
+object. Then we also check if the `$result` has a row in it through `getAffectedRows()`. The return statement then will
+be hydrated using the injected hydrator into the prototype that has also been injected.
 
 This time, when we do not find a row we will throw an `\Exception` so that the application will easily be able to handle
 the scenario.
