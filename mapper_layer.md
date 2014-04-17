@@ -59,6 +59,7 @@ interface AlbumMapperInterface
     /**
      * @param int|string $id
      * @return AlbumInterface
+     * @throws \InvalidArgumentException
      */
     public function find($id);
 
