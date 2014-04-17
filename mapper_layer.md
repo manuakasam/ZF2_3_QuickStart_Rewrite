@@ -19,7 +19,7 @@ The term "database abstraction" may sound quite confusing but this is actually a
 a NoSQL database. Both have methods for CRUD operations. For example to query the database against a given row in
 MySQL you'd do a `mysqli_query('SELECT foo FROM bar')`. But using an ORM for MongoDB for example you'd do something
 like `$mongoODM->getRepository('bar')->find('foo')`. Both engines would give you the same result but the execution is
-fairly simple.
+different.
 
 So if we start using a SQL database and write those codes directly into our `AlbumService` and a year later we decide
 to switch to a NoSQL database, we would literally have to delete all previously coded lines and write new ones. And
@@ -52,7 +52,7 @@ following content to it.
 // Filename: /module/Album/src/Album/Mapper/AlbumMapperInterface.php
 namespace Album\Mapper;
 
-use Album\Entity\AlbumInterface;
+use Album\Model\AlbumInterface;
 
 interface AlbumMapperInterface
 {
@@ -88,7 +88,7 @@ interface AlbumMapperInterface
 
 As you can see we define four different functions. We say that a mapper-implementation is supposed to have one
 `find()`-function that returns a single object implementing the `AlbumInterface`. Then we want to have one function
-called `findAll()` that returns an array or objects implementing the `AlbumInterface`. Next we have the `save()`-
+called `findAll()` that returns an array of objects implementing the `AlbumInterface`. Next we have the `save()`-
 function to either **insert** or **update** the given album-object into the database and last but not least the
 function `remove()` to delete the given album-object.
 
@@ -239,24 +239,24 @@ this by creating a factory the same way we have done for the `ListController`. F
 return array(
     'service_manager' => array(
         'factories' => array(
-            'Album\Service\AlbumService' => 'Album\Service\Factory\AlbumServiceFactory'
+            'Album\Service\AlbumServiceInterface' => 'Album\Factory\AlbumServiceFactory'
         )
     ),
-    'view_manager' => array(/** ... */),
-    'controllers' => array(/** ... */),
-    'router' => array(/** ... */)
+    'view_manager' => array( /** ViewManager Config */ ),
+    'controllers'  => array( /** ControllerManager Config */ ),
+    'router'       => array( /** Router Config */ )
 );
 ```
 
-Going by the above configuration we now need to create the class `Album\Service\Factory\AlbumServiceFactory` so go
-ahead and create it, too:
+Going by the above configuration we now need to create the class `Album\Factory\AlbumServiceFactory` so let's go ahead
+and create it:
 
 ```php
 <?php
-// Filename: /module/Album/config/module.config.php
-namespace Album\Service\Factory;
+// Filename: /module/Album/src/Album/Factory/AlbumServiceFactory.php
+namespace Album\Factory;
 
-use Album\Mapper\AlbumMapperInterface;
+use Album\Service\AlbumService;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
