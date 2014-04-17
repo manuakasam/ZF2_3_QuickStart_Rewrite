@@ -349,10 +349,10 @@ a route of type `Segment`. Furthermore we want to put this route as a `child_rou
 <?php
 // FileName: /module/Album/config/module.config.php
 return array(
-    'db' => array( /* ... */ ),
-    'service_manager' => array( /* ... */ ),
-    'view_manager' => array( /* ... */ ),
-    'controllers' => array( /* ... */ ),
+    'db'              => array( /** DB Config */ ),
+    'service_manager' => array( /* ServiceManager Config */ ),
+    'view_manager'    => array( /* ViewManager Config */ ),
+    'controllers'     => array( /* ControllerManager Config */ ),
     'router' => array(
         'routes' => array(
             'album' => array(
