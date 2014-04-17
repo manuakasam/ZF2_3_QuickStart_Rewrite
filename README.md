@@ -36,7 +36,7 @@ Just drop inline comments or do PRs against the branches.
 
 Thanks everyone for your help!
 
-** Older drafts **
+**Older drafts**
 
 3. [Chapter 03 - Database and TableGateway integration](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/10/files)
 4. [Chapter 04 - Working with Hydrators](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/11/files)
