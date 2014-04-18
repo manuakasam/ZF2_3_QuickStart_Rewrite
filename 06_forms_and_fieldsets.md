@@ -15,11 +15,11 @@ Zend\Form\Fieldset
 
 The first component that you have to know about is `Zend\Form\Fieldset`. A `Fieldset` is a component that contains a
 reusable set of elements. You will use the `Fieldset` to create the frontend-input for your backend-models. It is
-considered best practice to have one `Fieldset` for every `Model` of your application.
+considered good practice to have one `Fieldset` for every `Model` of your application.
 
 The `Fieldset`-component however is no `Form`, meaning you will not be able to use a `Fieldset` without attaching it
 to the `Form`-component. The advantage here is that you have one set of elements that you can re-use for as many
-`Forms` as you like without having to re-declare all the inputs for the `Model` that's representet by the `Fieldset`.
+`Forms` as you like without having to re-declare all the inputs for the `Model` that's represented by the `Fieldset`.
 
 Zend\Form\Form
 --------------
@@ -74,16 +74,15 @@ class AlbumFieldset extends Fieldset
             )
         ));
     }
-
 }
 ```
 
 As you can see this class is pretty handy. All we do is to have our class extend `Zend\Form\Fieldset` and then we
-overwrite the parents `__construct()` method and add all the elements we need to the fieldset. This `Fieldset` can now
-be used by as many forms as we want. So let's go ahead and create our first `Form`.
+write a `__construct()` method and add all the elements we need to the fieldset. This `Fieldset` can now be used by
+as many forms as we want. So let's go ahead and create our first `Form`.
 
 
-Creating the InsertAlbumForm
+Creating the AlbumForm
 ============================
 
 Now that we have our `AlbumFieldset` in place, we need to use it inside a `Form`. We then need to add a Submit-Button
@@ -103,6 +102,7 @@ class InsertAlbumForm extends Form
     public function __construct()
     {
         $this->add(array(
+            'name' => 'album-fieldset',
             'type' => 'Album\Form\AlbumFieldset'
         ));
 
@@ -124,22 +124,22 @@ and nothing more. Let's now make use of the Form.
 Adding a new Album
 ==================
 
-Now that we have the `InsertAlbumForm` written we want to use it. But there's a couple more tasks that you need to do.
+Now that we have the `AlbumForm` written we want to use it. But there's a couple more tasks that you need to do.
 The tasks that are standing right in front of you are:
 
-- create a new controller `InsertController`
-- add `AlbumService` as a dependency to the `InsertController`
-- add `InsertAlbumForm` as a dependency to the `InsertController`
-- create a new route `album/insert` that routes to the `InsertController`
+- create a new controller `WriteController`
+- add `AlbumService` as a dependency to the `WriteController`
+- add `AlbumForm` as a dependency to the `WriteController`
+- create a new route `album/add` that routes to the `WriteController` and its `addAction()`
 - create a new view that displays the form
 
 
-Creating the `InsertController`
+Creating the `WriteController`
 -------------------------------
 
 As you can see from the task-list we need a new controller and this controller is supposed to have two dependencies.
 One dependency being the `AlbumService` that's also being used within our `ListController` and the other dependency
-being the `InsertAlbumForm` which is new. Since the `InsertAlbumForm` is a dependency that the `ListController` doesn't
+being the `AlbumForm` which is new. Since the `AlbumForm` is a dependency that the `ListController` doesn't
 need to display album-data, we will create a new controller to keep things properly separated. First, register a
 controller-factory within the configuration:
 
@@ -147,60 +147,69 @@ controller-factory within the configuration:
 <?php
 // Filename: /module/Album/config/module.config.php
 return array(
-    'db' => array(),
-    'service_manager' => array(),
-    'view_manager' => array(),
-    'controllers' => array(
+<?php
+// Filename: /module/Album/config/module.config.php
+return array(
+    'db'              => array( /** DB Config */ ),
+    'service_manager' => array( /** ServiceManager Config */),
+    'view_manager'    => array( /** ViewManager Config */ ),
+    'controllers'     => array(
         'factories' => array(
-            'Album\Controller\List'   => 'Album\Controller\Factory\ListControllerFactory',
-            'Album\Controller\Insert' => 'Album\Controller\Factory\InsertControllerFactory'
+            'Album\Controller\List'  => 'Album\Factory\ListControllerFactory',
+            'Album\Controller\Write' => 'Album\Factory\WriteControllerFactory'
         )
     ),
-    'router' => array()
+    'router'          => array( /** Router Config */ )
 );
 ```
 
-Nest step would be to write the `InsertControllerFactory`. Have the factory return the `InsertController` and add the
+Nest step would be to write the `WriteControllerFactory`. Have the factory return the `WriteController` and add the
 required dependencies within the constructor.
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Controller/Factory/InsertControllerFactory.php
-namespace Album\Controller\Factory;
+// Filename: /module/Album/src/Album/Factory/WriteControllerFactory.php
+namespace Album\Factory;
 
-use Album\Controller\InsertController;
+use Album\Controller\WriteController;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-class InsertControllerFactory implements FactoryInterface
+class WriteControllerFactory implements FactoryInterface
 {
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
         $realServiceLocator = $serviceLocator->getServiceLocator();
-        $albumService       = $realServiceLocator->get('Album\Service\AlbumService');
-        $albumInsertForm    = $realServiceLocator->get('FormElementManager')->get('Album\Form\InsertAlbumForm');
+        $albumService       = $realServiceLocator->get('Album\Service\AlbumServiceInterface');
+        $albumInsertForm    = $realServiceLocator->get('FormElementManager')->get('Album\Form\AlbumForm');
 
-        return new InsertController(
+        return new WriteController(
             $albumService,
             $albumInsertForm
         );
     }
-
 }
 ```
 
-Next up is the creation of our controller. Be sure to type hint the dependencies by their interfaces!
+In this code-example there's a couple of things to be aware of. First, the `WriteController` doesn't exist yet, but we
+will create this in the next step so we're just assuming that it will exist later on. Second we access the
+`FormElementManager` to get access to our `AlbumForm`. All forms should be accessed through the `FormElementManager`.
+Even though we haven't registered the `AlbumForm` in our config files yet the `FormElementManager` automatically knows
+about forms that act as `invokables`. As long as you have no dependencies you don't need to register them explicitly.
+
+Next up is the creation of our controller. Be sure to type hint the dependencies by their interfaces and to add the
+`addAction()`!
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Controller/InsertController.php
+// Filename: /module/Album/src/Album/Controller/WriteController.php
 namespace Album\Controller;
 
 use Album\Service\AlbumServiceInterface;
 use Zend\Form\FormInterface;
 use Zend\Mvc\Controller\AbstractActionController;
 
-class InsertController extends AbstractActionController
+class WriteController extends AbstractActionController
 {
     protected $albumService;
 
@@ -213,6 +222,10 @@ class InsertController extends AbstractActionController
         $this->albumService = $albumService;
         $this->albumForm    = $albumForm;
     }
+
+    public function addAction()
+    {
+    }
 }
 ```
 
@@ -222,11 +235,11 @@ Right on to creating the new route:
 <?php
 // Filename: /module/Album/config/module.config.php
 return array(
-    'db'              => array( /** ... */ ),
-    'service_manager' => array( /** ... */ ),
-    'view_manager'    => array( /** ... */ ),
-    'controllers'     => array( /** ... */ ),
-    'router' => array(
+    'db'              => array( /** Db Config */ ),
+    'service_manager' => array( /** ServiceManager Config */ ),
+    'view_manager'    => array( /** ViewManager Config */ ),
+    'controllers'     => array( /** Controller Config */ ),
+    'router'          => array(
         'routes' => array(
             'album' => array(
                 'type' => 'literal',
@@ -235,7 +248,7 @@ return array(
                     'defaults' => array(
                         'controller' => 'Album\Controller\List',
                         'action'     => 'index',
-                    ),
+                    )
                 ),
                 'may_terminate' => true,
                 'child_routes'  => array(
@@ -247,16 +260,17 @@ return array(
                                 'action' => 'detail'
                             ),
                             'constraints' => array(
-                                'id' => '[1-9]\d*'
+                                'id' => '\d+'
                             )
                         )
                     ),
-                    'insert' => array(
+                    'add' => array(
                         'type' => 'literal',
                         'options' => array(
-                            'route'    => '/insert',
+                            'route'    => '/add',
                             'defaults' => array(
-                                'controller' => 'Album\Controller\Insert'
+                                'controller' => 'Album\Controller\Write',
+                                'action'     => 'add'
                             )
                         )
                     )
@@ -289,12 +303,13 @@ getting this error, let's find out what it means and fix it!
 
 The above error message is very common and it's solution isn't that intuitive. It appears that there is an error within
 the `Zend/Form/Fieldset.php` but that's not the case. The error message let's you know that something didn't go right
-while you were creating your form. In fact, while creating both the `InsertAlbumForm` as well as the `AlbumFieldset` we
+while you were creating your form. In fact, while creating both the `AlbumForm` as well as the `AlbumFieldset` we
 have forgotten something very, very important.
 
 **When overwriting a `__construct()` method within the `Zend\Form`-component, be sure to always call
 `parent::__construct()`!** Without this, forms and fieldsets will not be able to get initiated correctly. Let's now fix
-the problem by calling the parents constructor in both form and fieldset.
+the problem by calling the parents constructor in both form and fieldset. To have more flexibility we will also
+include the signature of the `__construct()` function which accepts a couple of parameters.
 
 First the form
 ```php
@@ -304,13 +319,14 @@ namespace Album\Form;
 
 use Zend\Form\Form;
 
-class InsertAlbumForm extends Form
+class AlbumForm extends Form
 {
-    public function __construct()
+    public function __construct($name = null, $options = array())
     {
-        parent::__construct('insert-album-form');
+        parent::__construct($name, $options);
 
         $this->add(array(
+            'name' => 'album-fieldset',
             'type' => 'Album\Form\AlbumFieldset'
         ));
 
@@ -325,7 +341,11 @@ class InsertAlbumForm extends Form
 }
 ```
 
-And then the fieldset
+As you can see our `AlbumForm` now accepts two parameters to give our form a name and to set a couple of options. Both
+parameters will be passed along to the parent. If you look closely at how we add the `AlbumFieldset` to the form you'll
+notice that we assign a name to the fieldset. Those options will be passed from the `FormElementManager` when the
+`AlbumFieldset` is created. But for this to function we need to do the same step inside our fieldset, too:
+
 ```php
 <?php
 // Filename: /module/Album/src/Album/Form/AlbumFieldset.php
@@ -335,9 +355,9 @@ use Zend\Form\Fieldset;
 
 class AlbumFieldset extends Fieldset
 {
-    public function __construct()
+    public function __construct($name = null, $options = array())
     {
-        parent::__construct('album-fieldset');
+        parent::__construct($name, $options);
 
         $this->add(array(
             'type' => 'hidden',
@@ -360,46 +380,22 @@ class AlbumFieldset extends Fieldset
             )
         ));
     }
-
 }
 ```
 
-Reloading your website now will yield you the (current) desired result. However we're making use of a Feature from the
-`FormElementManager` or rather it's parent the `AbstractPluginManager` which is called `autoAddInvokableClass`. This
-feature tries to access given classnames even when we have not registered them within the ServiceManager configuration.
-
-While this does work in our case it is considered a bad-practice to make use of it. So let's manually assign the
-invokables for our form and the fieldset within the configuration for the `FormElementManager`!
-
-```php
-<?php
-// Filename: /module/Album/config/module.config.php
-return array(
-    'form_elements' => array(
-        'invokables' => array(
-            'Album\Form\AlbumFieldset'   => 'Album\Form\AlbumFieldset',
-            'Album\Form\InsertAlbumForm' => 'Album\Form\InsertAlbumForm'
-        )
-    ),
-    'db'              => array( /** ... */ ),
-    'service_manager' => array( /** ... */ ),
-    'view_manager'    => array( /** ... */ ),
-    'controllers'     => array( /** ... */ ),
-    'router'          => array( /** ... */ )
-);
-```
+Reloading your application now will yield you the desired result.
 
 
 Displaying the form
 ===================
 
-Now that we have our `InsertAlbumForm` within our `InsertController` it's time to pass this form to the view and have
-it rendered using the provided `ViewHelpers` from the `Zend\Form` component. First change your controller so that the form
-is passed to the view.
+Now that we have our `AlbumForm` within our `WriteController` it's time to pass this form to the view and have
+it rendered using the provided `ViewHelpers` from the `Zend\Form` component. First change your controller so that the
+form is passed to the view.
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Controller/InsertController.php
+// Filename: /module/Album/src/Album/Controller/WriteController.php
 namespace Album\Controller;
 
 use Album\Service\AlbumServiceInterface;
@@ -407,7 +403,7 @@ use Zend\Form\FormInterface;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
-class InsertController extends AbstractActionController
+class WriteController extends AbstractActionController
 {
     protected $albumService;
 
@@ -421,7 +417,7 @@ class InsertController extends AbstractActionController
         $this->albumForm    = $albumForm;
     }
 
-    public function indexAction()
+    public function addAction()
     {
         return new ViewModel(array(
             'form' => $this->albumForm
@@ -434,8 +430,8 @@ And then we need to modify our view to have the form rendered.
 
 
 ```php
-<!-- Filename: /module/Album/view/album/insert/index.phtml -->
-<h1>InsertController::indexAction()</h1>
+<!-- Filename: /module/Album/view/album/write/add.phtml -->
+<h1>WriteController::addAction()</h1>
 <?php
 $form = $this->form;
 $form->setAttribute('method', 'POST');
@@ -454,8 +450,7 @@ rather than `GET`. Then we tell the form that it should send it's data to the cu
 `prepare()` itself which triggers a couple of internal things.
 
 Next we're using a couple of `ViewHelpers` which take care of rendering the form for us. There's many different ways to
-render a form within Zend Framework but using `formCollection()` is probably the fastest one. Please refer to the
-appendix section "Rendering Zend\Form" for further information on how to render your forms differently. //@todo appendix link
+render a form within Zend Framework but using `formCollection()` is probably the fastest one.
 
 Refreshing the browser you will now see your form properly displayed. However if we're submitting the form all we see
 is our form being displayed again. And this is due to the simple fact that we didn't add any logic to the controller
@@ -477,11 +472,11 @@ form you have within your application.
     - redirect the user to either the detail page of the entered data or to some overview page
 4. In all other cases, you want the form displayed, sometimes alongside given error messages
 
-And all of this is really not that much code. Modify your `InsertController` to the following code:
+And all of this is really not that much code. Modify your `WriteController` to the following code:
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Controller/InsertController.php
+// Filename: /module/Album/src/Album/Controller/WriteController.php
 namespace Album\Controller;
 
 use Album\Service\AlbumServiceInterface;
@@ -489,7 +484,7 @@ use Zend\Form\FormInterface;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
-class InsertController extends AbstractActionController
+class WriteController extends AbstractActionController
 {
     protected $albumService;
 
@@ -503,7 +498,7 @@ class InsertController extends AbstractActionController
         $this->albumForm    = $albumForm;
     }
 
-    public function indexAction()
+    public function addAction()
     {
         $request = $this->getRequest();
 
@@ -536,8 +531,8 @@ If any error occurred at any point we simply display the form again.
 Submitting the form right now will return into the following error
 
 ```text
-Fatal error: Call to undefined method Album\Service\AlbumService::save() in
-/module/Album/src/Album/Controller/InsertController.php on line 33
+Fatal error: Call to undefined method Album\Service\AlbumService::saveAlbum() in
+/module/Album/src/Album/Controller/WriteController.php on line 33
 ```
 
 Let's fix this by extending our `AlbumService`. Be sure to also change the signature of the `AlbumServiceInterface`!
@@ -555,7 +550,7 @@ interface AlbumServiceInterface
      * Should return a set of all albums that we can iterate over. Single entries of the array or \Traversable object
      * should be of type \Album\Model\Album
      *
-     * @return array|\Traversable|AlbumInterface[]
+     * @return array|AlbumInterface[]
      */
     public function findAllAlbums();
 
@@ -586,16 +581,22 @@ We changed our interface slightly to typehint against the `AlbumInterface` rathe
 // Filename: /module/Album/src/Album/Service/AlbumService.php
 namespace Album\Service;
 
+use Album\Mapper\AlbumMapperInterface;
 use Album\Model\AlbumInterface;
-use Zend\Db\TableGateway\TableGatewayInterface;
 
 class AlbumService implements AlbumServiceInterface
 {
-    protected $tableGateway;
+    /**
+     * @var \Album\Mapper\AlbumMapperInterface
+     */
+    protected $albumMapper;
 
-    public function __construct(TableGatewayInterface $tableGateway)
+    /**
+     * @param AlbumMapperInterface $albumMapper
+     */
+    public function __construct(AlbumMapperInterface $albumMapper)
     {
-        $this->tableGateway = $tableGateway;
+        $this->albumMapper = $albumMapper;
     }
 
     /**
@@ -603,9 +604,7 @@ class AlbumService implements AlbumServiceInterface
      */
     public function findAllAlbums()
     {
-        $resultSet = $this->tableGateway->select();
-
-        return $resultSet;
+        return $this->albumMapper->findAll();
     }
 
     /**
@@ -613,18 +612,7 @@ class AlbumService implements AlbumServiceInterface
      */
     public function findAlbum($id)
     {
-        $id     = (int) $id;
-        $rowset = $this->tableGateway->select(array(
-            'id' => $id
-        ));
-
-        $row  = $rowset->current();
-
-        if (!$row) {
-            throw new \InvalidArgumentException("Could not find row $id");
-        }
-
-        return $row;
+        return $this->albumMapper->find($id);
     }
 
     /**
@@ -632,22 +620,181 @@ class AlbumService implements AlbumServiceInterface
      */
     public function saveAlbum(AlbumInterface $album)
     {
-        if (null === $album->getId()) {
-            $this->tableGateway->insert($album);
-        } else {
-            $this->tableGateway->update($album, array(
-                'id' => $album->getId()
-            ));
-        }
-
-        return $album;
+        return $this->albumMapper->save($album);
     }
 }
 ```
 
-As you can see the `saveAlbum()` function checks if the current `Album` already has an `id` set. If it is not the case
-we call the `insert()` function of the TableGateway but if it's the case we call the ``update() function and assign the
-id. Lastly we return the album again.
+And now that we're making an assumption against our `albumMapper` we need to extend the `AlbumMapperInterface` and its
+implementation, too. Start by extending the interface:
+
+```php
+<?php
+// Filename: /module/Album/src/Album/Mapper/AlbumMapperInterface.php
+namespace Album\Mapper;
+
+use Album\Model\AlbumInterface;
+
+interface AlbumMapperInterface
+{
+    /**
+     * @param int|string $id
+     * @return AlbumInterface
+     * @throws \InvalidArgumentException
+     */
+    public function find($id);
+
+    /**
+     * @return array|AlbumInterface[]
+     */
+    public function findAll();
+
+    /**
+     * @param AlbumInterface $albumObject
+     *
+     * @param AlbumInterface $albumObject
+     * @return AlbumInterface
+     * @throws \Exception
+     */
+    public function save(AlbumInterface $albumObject);
+}
+```
+
+And now the implementation of the save function.
+
+```php
+<?php
+// Filename: /module/Album/src/Album/Mapper/ZendDbSqlMapper.php
+namespace Album\Mapper;
+
+use Album\Model\AlbumInterface;
+use Zend\Db\Adapter\AdapterInterface;
+use Zend\Db\Adapter\Driver\ResultInterface;
+use Zend\Db\ResultSet\HydratingResultSet;
+use Zend\Db\Sql\Insert;
+use Zend\Db\Sql\Sql;
+use Zend\Db\Sql\Update;
+use Zend\Stdlib\Hydrator\HydratorInterface;
+
+class ZendDbSqlMapper implements AlbumMapperInterface
+{
+    /**
+     * @var \Zend\Db\Adapter\AdapterInterface
+     */
+    protected $dbAdapter;
+
+    protected $hydrator;
+
+    protected $albumPrototype;
+
+    /**
+     * @param AdapterInterface  $dbAdapter
+     * @param HydratorInterface $hydrator
+     * @param AlbumInterface    $albumPrototype
+     */
+    public function __construct(
+        AdapterInterface $dbAdapter,
+        HydratorInterface $hydrator,
+        AlbumInterface $albumPrototype
+    ) {
+        $this->dbAdapter      = $dbAdapter;
+        $this->hydrator       = $hydrator;
+        $this->albumPrototype = $albumPrototype;
+    }
+
+    /**
+     * @param int|string $id
+     *
+     * @return AlbumInterface
+     * @throws \InvalidArgumentException
+     */
+    public function find($id)
+    {
+        $sql    = new Sql($this->dbAdapter);
+        $select = $sql->select('album');
+        $select->where(array('id = ?' => $id));
+
+        $stmt   = $sql->prepareStatementForSqlObject($select);
+        $result = $stmt->execute();
+
+        if ($result instanceof ResultInterface && $result->isQueryResult() && $result->getAffectedRows()) {
+            return $this->hydrator->hydrate($result->current(), $this->albumPrototype);
+        }
+
+        throw new \InvalidArgumentException("Album with given ID:{$id} not found.");
+    }
+
+    /**
+     * @return array|AlbumInterface[]
+     */
+    public function findAll()
+    {
+        $sql    = new Sql($this->dbAdapter);
+        $select = $sql->select('album');
+
+        $stmt   = $sql->prepareStatementForSqlObject($select);
+        $result = $stmt->execute();
+
+        if ($result instanceof ResultInterface && $result->isQueryResult()) {
+            $resultSet = new HydratingResultSet($this->hydrator, $this->albumPrototype);
+
+            return $resultSet->initialize($result);
+        }
+
+        return array();
+    }
+
+     /**
+      * @param AlbumInterface $albumObject
+      *
+      * @return AlbumInterface
+      * @throws \Exception
+      */
+     public function save(AlbumInterface $albumObject)
+     {
+         $albumData = $this->hydrator->extract($albumObject);
+         unset($albumData['id']); // Neither Insert nor Update needs the ID in the array
+
+         if ($albumObject->getId()) {
+             // ID present, it's an Update
+             $action = new Update('album');
+             $action->set($albumData);
+             $action->where(array('id = ?' => $albumObject->getId()));
+         } else {
+             // ID NOT present, it's an Insert
+             $action = new Insert('album');
+             $action->values($albumData);
+         }
+
+         $sql    = new Sql($this->dbAdapter);
+         $stmt   = $sql->prepareStatementForSqlObject($action);
+         $result = $stmt->execute();
+
+         if ($result instanceof ResultInterface) {
+             if ($newId = $result->getGeneratedValue()) {
+                 // When a value has been generated, set it on the object
+                 $albumObject->setId($newId);
+             }
+
+             return $albumObject;
+         }
+
+         throw new \Exception("Database error");
+     }
+}
+```
+
+The `save()` function handles two cases. The `insert` and `update` routine. Firstly we extract the `Album`-Object since
+we need array data to work with `Insert` and `Update`. Then we remove the `id` from the array since this field is not
+wanted. When we do an update of a row, we don't update the `id` property itself and therefore she isn't needed. On the
+insert routine we don't need an `id` either so we can simply strip it away.
+
+After the `id` field has been removed we check what action is supposed to be called. If the `Album`-Object has an `id`
+set we create a new `Update`-Object and if not we create a new `Insert`-Object. We set the data for both actions
+accordingly and after that the data is passed over to the `Sql`-Object for the actual query into the database.
+
+At last we check if we receive a valid result and if there has been an `id` generated. If it's the case we call the
+`setId()`-function of our album and return the object in the end.
 
 Let's submit our form again and see what we get.
 
@@ -666,20 +813,12 @@ previous chapter, this is done through the use of hydrators.
 Zend\Form and Zend\Stdlib\Hydrator working together
 ===================================================
 
-As you recall from the previous chapter, the Zend\Db\TableGateway-component had the ability to make use of hydration
-internally. Zend\Form does provide us with the same abilities like the TableGateway does! We do have the ability to
-assign hydrators to both `Zend\Form\Form` and `Zend\Form\Fieldset`. This means the big question is where to add thy
-hydrators to.
-
-Now remember that we have defined a `Fieldset` that matches our `Album`-Model. No matter where we are going to use this
-fieldset, we always want it to return an `Album`-Model. It wouldn't make sense to apply a hydrator to one form and then
-basically copy/paste the same stuff to every other form that uses the `AlbumFieldset`. So the right choice would be to
-add the hydration to the fieldset. Before we do this however, let's modify our controller to temporarily dump the data
-that's coming from the form.
+Before we go ahead and put the hydrator into the form, let's first do a data-dump of the data coming from the form. That
+way we can easily notice all changes that the hydrator does. Modify your `WriteController` to the following:
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Controller/InsertController.php
+// Filename: /module/Album/src/Album/Controller/WriteController.php
 namespace Album\Controller;
 
 use Album\Service\AlbumServiceInterface;
@@ -687,7 +826,7 @@ use Zend\Form\FormInterface;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
-class InsertController extends AbstractActionController
+class WriteController extends AbstractActionController
 {
     protected $albumService;
 
@@ -701,7 +840,7 @@ class InsertController extends AbstractActionController
         $this->albumForm    = $albumForm;
     }
 
-    public function indexAction()
+    public function addAction()
     {
         $request = $this->getRequest();
 
@@ -710,9 +849,7 @@ class InsertController extends AbstractActionController
 
             if ($this->albumForm->isValid()) {
                 try {
-                    \Zend\Debug\Debug::dump($this->albumForm->getData());
-                    die();
-
+                    \Zend\Debug\Debug::dump($this->albumForm->getData());die();
                     $this->albumService->saveAlbum($this->albumForm->getData());
 
                     return $this->redirect()->toRoute('album');
@@ -729,22 +866,21 @@ class InsertController extends AbstractActionController
 }
 ```
 
-Submit the form once with some dummy data and check the output. It should look something like this:
+With this set up go ahead and submit the form once again. You should now see a data dump like the following:
 
 ```text
 array(2) {
-    ["submit"] => string(16) "Insert new Album"
-    ["album-fieldset"] => array(3) {
-        ["id"] => string(0) ""
-        ["artist"] => string(4) "test"
-        ["title"] => string(3) "123"
-    }
+  ["submit"] => string(16) "Insert new Album"
+  ["album-fieldset"] => array(3) {
+    ["id"] => string(0) ""
+    ["artist"] => string(3) "foo"
+    ["title"] => string(3) "bar"
+  }
 }
 ```
 
-This is the data from the whole form, including the submit button. And you can see the album-data that resides within
-the `album-fieldset` key, which is the name of the `AlbumFieldset` class. Let's now add hydration to the
-`AlbumFieldset`.
+Now telling your fieldset to hydrate it's data into an `Album`-object is very simple. All you need to do is to assign
+the hydrator and the object prototype like this:
 
 ```php
 <?php
@@ -757,12 +893,12 @@ use Zend\Stdlib\Hydrator\ClassMethods;
 
 class AlbumFieldset extends Fieldset
 {
-    public function __construct()
+    public function __construct($name = null, $options = array())
     {
-        parent::__construct('album-fieldset');
+        parent::__construct($name, $options);
 
-        $this->setHydrator(new ClassMethods(false))
-             ->setObject(new Album());
+        $this->setHydrator(new ClassMethods(false));
+        $this->setObject(new Album());
 
         $this->add(array(
             'type' => 'hidden',
@@ -788,9 +924,9 @@ class AlbumFieldset extends Fieldset
 }
 ```
 
-As you can see we're doing two things. We tell the fieldset to be using the `ClassMethods` hydrator and then we tell
-the fieldset that the default object to be returned is our `Album`-Model. However when you're re-submitting the form
-now you'll notice that nothing has changed. We're still only getting array data returned and no object.
+As you can see we're doing two things. We tell the fieldset to be using the `ClassMethods` hydrator and then we tell the
+fieldset that the default object to be returned is our `Album`-Model. However when you're re-submitting the form now
+you'll notice that nothing has changed. We're still only getting array data returned and no object.
 
 This is due to the fact that the form itself doesn't know that it has to return an object. When the form doesn't know
 that it's supposed to return an object it uses the `ArraySeriazable` hydrator recursively. To change this, all we need
@@ -798,7 +934,8 @@ to do is to make our `AlbumFieldset` a so-called `base_fieldset`.
 
 A `base_fieldset` basically tells the form "this form is all about me, don't worry about other data, just worry about
 me". And when the form knows that this fieldset is the real deal, then the form will use the hydrator presented by the
-fieldset and return the object that we desire. This is how it would look like:
+fieldset and return the object that we desire. Modify your `AlbumForm` and assign the `AlbumFieldset` as
+`base_fieldset`:
 
 ```php
 <?php
@@ -807,13 +944,14 @@ namespace Album\Form;
 
 use Zend\Form\Form;
 
-class InsertAlbumForm extends Form
+class AlbumForm extends Form
 {
-    public function __construct()
+    public function __construct($name = null, $options = array())
     {
-        parent::__construct('insert-album-form');
+        parent::__construct($name, $options);
 
         $this->add(array(
+            'name' => 'album-fieldset',
             'type' => 'Album\Form\AlbumFieldset',
             'options' => array(
                 'use_as_base_fieldset' => true
@@ -831,23 +969,22 @@ class InsertAlbumForm extends Form
 }
 ```
 
-When adding the fieldset to the form all you have to do is set the options key `use_as_base_fieldset` to true and
-you're done. Re-Submit the form now and you should see the following output:
+Now submit your form again. You should see the following output:
 
 ```text
-object(Album\Model\Album)#262 (3) {
-    ["id":protected]     => string(0) ""
-    ["title":protected]  => string(3) "best title"
-    ["artist":protected] => string(3) "any artist"
+object(Album\Model\Album)#294 (3) {
+  ["id":protected] => string(0) ""
+  ["title":protected] => string(3) "foo"
+  ["artist":protected] => string(3) "bar"
 }
 ```
 
-Since we're getting an object returned from the form now, re-factor your controller and remove the data-dumping and
-the new album can be saved to the database. //@todo that's utter bullshit :S i suck!
+You can now revert back your `WriteController` to it's previous form to have the form-data passed through the
+`AlbumService`.
 
 ```php
 <?php
-// Filename: /module/Album/src/Album/Controller/InsertController.php
+// Filename: /module/Album/src/Album/Controller/WriteController.php
 namespace Album\Controller;
 
 use Album\Service\AlbumServiceInterface;
@@ -855,7 +992,7 @@ use Zend\Form\FormInterface;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
-class InsertController extends AbstractActionController
+class WriteController extends AbstractActionController
 {
     protected $albumService;
 
@@ -869,7 +1006,7 @@ class InsertController extends AbstractActionController
         $this->albumForm    = $albumForm;
     }
 
-    public function indexAction()
+    public function addAction()
     {
         $request = $this->getRequest();
 
@@ -894,3 +1031,15 @@ class InsertController extends AbstractActionController
 }
 ```
 
+If you send the form now you'll now be able to add as many new albums as you want. Great!
+
+
+Conclusion
+=========
+
+In this chapter you've learned a great deal about the `Zend\Form` component. You've learned that `Zend\Stdlib\Hydrator`
+takes a big part within the `Zend\Form` component and by making use of both components you've been able to create an
+insert form for the album module.
+
+In the next chapter we will finalize the CRUD functionality by creating the update and delete routines for the album
+module.
