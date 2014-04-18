@@ -29,8 +29,9 @@ Each chapter has it's own branch and will be managed through a PR. Please check 
 1. [Chapter 01 - Writing your first module](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/7/files)
 2. [Chapter 02 - Services and the ServiceManager](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/8/files)
 3. [Chapter 03 - Preparing Database Backends](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/13/files)
-4. [Chapter 04 - Introducing Zend\Db\Sql and Zend\Stdlib\Hydrator](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/13/files)
+4. [Chapter 04 - Introducing Zend\Db\Sql and Zend\Stdlib\Hydrator](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/14/files)
 5. [Chapter 05 - Understanding Routing](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/12/files)
+6. [Chapter 06 - Introducing Zend\Form and Zend\Form\Fieldset](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/15/files)
 
 Just drop inline comments or do PRs against the branches.
 
