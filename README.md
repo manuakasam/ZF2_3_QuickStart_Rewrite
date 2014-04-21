@@ -33,6 +33,7 @@ Each chapter has it's own branch and will be managed through a PR. Please check 
 5. [Chapter 05 - Understanding Routing](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/12/files)
 6. [Chapter 06 - Introducing Zend\Form and Zend\Form\Fieldset (Add Album)](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/15/files)
 7. [Chapter 07 - Data-binding in Zend\Form (Edit / Delete Album)](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/16/files)
+8. [Chapter 08 - Reviewing the Application](https://github.com/manuakasam/ZF2_3_QuickStart_Rewrite/pull/17/files)
 
 Just drop inline comments or do PRs against the branches.
 
